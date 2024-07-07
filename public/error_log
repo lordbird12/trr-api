@@ -1,0 +1,1 @@
+[29-Nov-2022 15:34:15 UTC] PHP Fatal error:  Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 7.3.0". You are running 5.6.40. in /home3/cp739306/public_html/suzukisocietyth.tech/suzuki-api/vendor/composer/platform_check.php on line 25
