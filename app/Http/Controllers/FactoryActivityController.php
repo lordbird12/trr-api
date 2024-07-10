@@ -322,7 +322,7 @@ class FactoryActivityController extends Controller
                 $Item->image = $Item->image;
 
 
-                switch ($request->activitytype) {
+                switch ($Item->activitytype) {
                     case '0':
                         $Item->soilImprovement = $request->soilImprovement;
                         $Item->plowingtype = $request->plowingtype;
