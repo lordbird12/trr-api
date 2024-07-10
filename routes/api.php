@@ -20,6 +20,7 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RadioController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FactoryActivityController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -167,6 +168,11 @@ Route::get('/get_income_paid/{frammer_id}/{month}/{year}', [IncomePaidController
 Route::resource('deduct_paid', DeductPaidController::class);
 Route::post('/deduct_paid_page', [DeductPaidController::class, 'getPage']);
 Route::get('/get_deduct_paid/{frammer_id}/{month}/{year}', [DeductPaidController::class, 'getList']);
+
+// Factory Activity
+Route::resource('factoryactivity', FactoryActivityController::class);
+Route::post('/factoryactivity_page', [FactoryActivityController::class, 'getPage']);
+Route::get('/get_factoryactivity', [FactoryActivityController::class, 'getList']);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
