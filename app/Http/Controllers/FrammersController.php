@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Frammers;
+use App\Models\Country;
+use App\Models\Province;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -77,6 +79,8 @@ class FrammersController extends Controller
                 $No = $No + 1;
                 $d[$i]->No = $No;
                 $d[$i]->image = url($d[$i]->image);
+                $d[$i]->country_name = $d[$i]->country_code ? Country::where('code', $d[$i]->country_code)->first()->name ?? null : null;
+                $d[$i]->province_name = $d[$i]->province_code ? Province::where('code', $d[$i]->province_code)->first()->name ?? null : null;
             }
         }
 

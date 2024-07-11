@@ -32,18 +32,18 @@ class FactoryActivityController extends Controller
         $search = $request->search;
         $start = $request->start;
         $page = $start / $length + 1;
-    
+
         $activityType = $request->activitytype;
         $frammerId = $request->frammer_id;
         $sugarType = $request->sugartype;
         $startDate = $request->start_date;
         $endDate = $request->end_date;
-    
+
         $col = [
             'id', 'activitytype', 'frammer_id', 'sugartype', 'plotsugar_id',
             'selectdate', 'image', 'created_at', 'updated_at'
         ];
-    
+
         switch ($activityType) {
             case '0':
                 $col = array_merge($col, ['soilImprovement', 'plowingtype', 'subtypeplowing', 'insecticidecost', 'equipmentrent', 'laborwages', 'fuelcost']);
@@ -69,35 +69,50 @@ class FactoryActivityController extends Controller
             case '7':
                 $col = array_merge($col, ['laborwages', 'fuelcost']);
                 break;
+            default:
+                $col = array_merge($col, [
+                    'soilImprovement', 'plowingtype', 'subtypeplowing', 'insecticidecost', 'equipmentrent',
+                    'sugarcane', 'plantingsystem', 'fertilizer', 'expenses', 'sugartypecost', 'sugarcaneplantingcost', 'fertilizercost',
+                    'wateringsystem',
+                    'fertilizerquantity', 'otheringredients', 'amountureafertilizer', 'herbicide', 'othertypes', 'otheringredientcosts', 'herbicidecost',
+                    'weed', 'plantdiseases', 'pests', 'pesticidecost',
+                    'fertilizertype',
+                    'cuttingtype', 'sugarcanetype', 'sugarcanecuttinglabor',
+                    'laborwages', 'fuelcost'
+                ]);
+                break;
         }
-    
+
         $orderby = [
             '', 'activitytype', 'frammer_id', 'sugartype', 'plotsugar_id',
             'selectdate', 'created_at'
         ];
-    
+
         $D = FactoryActivity::select($col);
-    
+
         if (isset($activityType)) {
             $D->where('activitytype', $activityType);
         }
-    
+
         if (isset($frammerId)) {
             $D->where('frammer_id', $frammerId);
         }
-    
+
         if (isset($sugarType)) {
             $D->where('sugartype', $sugarType);
         }
-    
-        // if (isset($startDate) && isset($endDate)) {
-        //     $D->whereBetween('selectdate', [$startDate, $endDate]);
-        // }
-    
+
+        if (isset($startDate) && isset($endDate)) {
+            $D->whereBetween('selectdate', [
+                \Carbon\Carbon::parse($startDate)->startOfDay(),
+                \Carbon\Carbon::parse($endDate)->endOfDay()
+            ]);
+        }
+
         if ($orderby[$order[0]['column']]) {
             $D->orderBy($orderby[$order[0]['column']], $order[0]['dir']);
         }
-    
+
         if ($search['value'] != '' && $search['value'] != null) {
             $D->where(function ($query) use ($search, $col) {
                 foreach ($col as $c) {
@@ -105,19 +120,18 @@ class FactoryActivityController extends Controller
                 }
             });
         }
-    
+
         $d = $D->paginate($length, ['*'], 'page', $page);
-    
+
         if ($d->isNotEmpty()) {
             $No = (($page - 1) * $length);
-    
+
             foreach ($d as $key => $item) {
                 $No++;
                 $item->No = $No;
-    
             }
         }
-    
+
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $d);
     }
     /**
@@ -148,6 +162,7 @@ class FactoryActivityController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
 
         $rules = [
             'activitytype' => 'required',
@@ -187,7 +202,7 @@ class FactoryActivityController extends Controller
 
                 switch ($request->activitytype) {
                     case '0':
-                        $Item->soilImprovement = $request->soilImprovement;
+                        $Item->soilImprovement = $request->soil_improvement;
                         $Item->plowingtype = $request->plowingtype;
                         $Item->subtypeplowing = $request->subtypeplowing;
                         $Item->insecticidecost = $request->insecticidecost;
@@ -284,10 +299,143 @@ class FactoryActivityController extends Controller
      */
     public function show($id)
     {
-        $Item = FactoryActivity::find($id);
-
-        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+        $item = FactoryActivity::find($id);
+    
+        if (!$item) {
+            return $this->returnError('Item not found', 404);
+        }
+    
+        $activityType = $item->activitytype;
+    
+        $data = [
+            'id' => $item->id,
+            'activitytype' => $item->activitytype,
+            'frammer_id' => $item->frammer_id,
+            'sugartype' => $item->sugartype,
+            'plotsugar_id' => $item->plotsugar_id,
+            'selectdate' => $item->selectdate,
+            'image' => $item->image,
+            'created_at' => $item->created_at,
+            'updated_at' => $item->updated_at,
+        ];
+    
+        switch ($activityType) {
+            case '0':
+                $data = array_merge($data, [
+                    'soilImprovement' => $item->soilImprovement,
+                    'plowingtype' => $item->plowingtype,
+                    'subtypeplowing' => $item->subtypeplowing,
+                    'insecticidecost' => $item->insecticidecost,
+                    'equipmentrent' => $item->equipmentrent,
+                    'laborwages' => $item->laborwages,
+                    'fuelcost' => $item->fuelcost
+                ]);
+                break;
+            case '1':
+                $data = array_merge($data, [
+                    'sugarcane' => $item->sugarcane,
+                    'plantingsystem' => $item->plantingsystem,
+                    'fertilizer' => $item->fertilizer,
+                    'expenses' => $item->expenses,
+                    'sugartypecost' => $item->sugartypecost,
+                    'sugarcaneplantingcost' => $item->sugarcaneplantingcost,
+                    'fertilizercost' => $item->fertilizercost,
+                    'fuelcost' => $item->fuelcost
+                ]);
+                break;
+            case '2':
+                $data = array_merge($data, [
+                    'wateringsystem' => $item->wateringsystem,
+                    'laborwages' => $item->laborwages,
+                    'fuelcost' => $item->fuelcost
+                ]);
+                break;
+            case '3':
+                $data = array_merge($data, [
+                    'fertilizerquantity' => $item->fertilizerquantity,
+                    'otheringredients' => $item->otheringredients,
+                    'amountureafertilizer' => $item->amountureafertilizer,
+                    'herbicide' => $item->herbicide,
+                    'othertypes' => $item->othertypes,
+                    'otheringredientcosts' => $item->otheringredientcosts,
+                    'herbicidecost' => $item->herbicidecost,
+                    'fertilizer' => $item->fertilizer,
+                    'laborwages' => $item->laborwages,
+                    'fuelcost' => $item->fuelcost
+                ]);
+                break;
+            case '4':
+                $data = array_merge($data, [
+                    'weed' => $item->weed,
+                    'plantdiseases' => $item->plantdiseases,
+                    'pests' => $item->pests,
+                    'pesticidecost' => $item->pesticidecost,
+                    'laborwages' => $item->laborwages,
+                    'fuelcost' => $item->fuelcost
+                ]);
+                break;
+            case '5':
+                $data = array_merge($data, [
+                    'fertilizertype' => $item->fertilizertype,
+                    'fertilizer' => $item->fertilizer,
+                    'fertilizerquantity' => $item->fertilizerquantity,
+                    'laborwages' => $item->laborwages,
+                    'fuelcost' => $item->fuelcost
+                ]);
+                break;
+            case '6':
+                $data = array_merge($data, [
+                    'cuttingtype' => $item->cuttingtype,
+                    'sugarcanetype' => $item->sugarcanetype,
+                    'sugarcanecuttinglabor' => $item->sugarcanecuttinglabor,
+                    'fuelcost' => $item->fuelcost
+                ]);
+                break;
+            case '7':
+                $data = array_merge($data, [
+                    'laborwages' => $item->laborwages,
+                    'fuelcost' => $item->fuelcost
+                ]);
+                break;
+            default:
+                $data = array_merge($data, [
+                    'soilImprovement' => $item->soilImprovement,
+                    'plowingtype' => $item->plowingtype,
+                    'subtypeplowing' => $item->subtypeplowing,
+                    'insecticidecost' => $item->insecticidecost,
+                    'equipmentrent' => $item->equipmentrent,
+                    'sugarcane' => $item->sugarcane,
+                    'plantingsystem' => $item->plantingsystem,
+                    'fertilizer' => $item->fertilizer,
+                    'expenses' => $item->expenses,
+                    'sugartypecost' => $item->sugartypecost,
+                    'sugarcaneplantingcost' => $item->sugarcaneplantingcost,
+                    'fertilizercost' => $item->fertilizercost,
+                    'wateringsystem' => $item->wateringsystem,
+                    'fertilizerquantity' => $item->fertilizerquantity,
+                    'otheringredients' => $item->otheringredients,
+                    'amountureafertilizer' => $item->amountureafertilizer,
+                    'herbicide' => $item->herbicide,
+                    'othertypes' => $item->othertypes,
+                    'otheringredientcosts' => $item->otheringredientcosts,
+                    'herbicidecost' => $item->herbicidecost,
+                    'weed' => $item->weed,
+                    'plantdiseases' => $item->plantdiseases,
+                    'pests' => $item->pests,
+                    'pesticidecost' => $item->pesticidecost,
+                    'fertilizertype' => $item->fertilizertype,
+                    'cuttingtype' => $item->cuttingtype,
+                    'sugarcanetype' => $item->sugarcanetype,
+                    'sugarcanecuttinglabor' => $item->sugarcanecuttinglabor,
+                    'laborwages' => $item->laborwages,
+                    'fuelcost' => $item->fuelcost
+                ]);
+                break;
+        }
+    
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
     }
+    
 
     /**
      * Show the form for editing the specified resource.
@@ -313,84 +461,84 @@ class FactoryActivityController extends Controller
         try {
             DB::beginTransaction();
 
-                $Item =  FactoryActivity::find($id);
-                $Item->activitytype = $Item->activitytype;
-                $Item->frammer_id = $Item->frammer_id;
-                $Item->sugartype = $Item->sugartype;
-                $Item->plotsugar_id = $Item->plotsugar_id;
-                $Item->selectdate = $Item->selectdate;
-                $Item->image = $Item->image;
+            $Item =  FactoryActivity::find($id);
+            $Item->activitytype = $Item->activitytype;
+            $Item->frammer_id = $Item->frammer_id;
+            $Item->sugartype = $Item->sugartype;
+            $Item->plotsugar_id = $Item->plotsugar_id;
+            $Item->selectdate = $Item->selectdate;
+            $Item->image = $Item->image;
 
 
-                switch ($Item->activitytype) {
-                    case '0':
-                        $Item->soilImprovement = $request->soilImprovement;
-                        $Item->plowingtype = $request->plowingtype;
-                        $Item->subtypeplowing = $request->subtypeplowing;
-                        $Item->insecticidecost = $request->insecticidecost;
-                        $Item->equipmentrent = $request->equipmentrent;
-                        $Item->laborwages = $request->laborwages;
-                        $Item->fuelcost = $request->fuelcost;
-                        break;
-                    case '1':
-                        $Item->sugarcane = $request->sugarcane;
-                        $Item->plantingsystem = $request->plantingsystem;
-                        $Item->fertilizer = $request->fertilizer;
-                        $Item->expenses = $request->expenses;
-                        $Item->sugartypecost = $request->sugartypecost;
-                        $Item->sugarcaneplantingcost = $request->sugarcaneplantingcost;
-                        $Item->fertilizercost = $request->fertilizercost;
-                        $Item->fuelcost = $request->fuelcost;
-                        break;
-                    case '2':
-                        $Item->wateringsystem = $request->wateringsystem;
-                        $Item->laborwages = $request->laborwages;
-                        $Item->fuelcost = $request->fuelcost;
-                        break;
-                    case '3':
-                        $Item->fertilizerquantity = $request->fertilizerquantity;
-                        $Item->otheringredients = $request->otheringredients;
-                        $Item->amountureafertilizer = $request->amountureafertilizer;
-                        $Item->herbicide = $request->herbicide;
-                        $Item->othertypes = $request->othertypes;
-                        $Item->otheringredientcosts = $request->otheringredientcosts;
-                        $Item->herbicidecost = $request->herbicidecost;
-                        $Item->fertilizer = $request->fertilizer;
-                        $Item->laborwages = $request->laborwages;
-                        $Item->fuelcost = $request->fuelcost;
-                        break;
-                    case '4':
-                        $Item->weed = $request->weed;
-                        $Item->plantdiseases = $request->plantdiseases;
-                        $Item->pests = $request->pests;
-                        $Item->pesticidecost = $request->pesticidecost;
-                        $Item->laborwages = $request->laborwages;
-                        $Item->fuelcost = $request->fuelcost;
-                        break;
-                    case '5':
-                        $Item->fertilizertype = $request->fertilizertype;
-                        $Item->fertilizer = $request->fertilizer;
-                        $Item->fertilizerquantity = $request->fertilizerquantity;
-                        $Item->laborwages = $request->laborwages;
-                        $Item->fuelcost = $request->fuelcost;
-                        break;
-                    case '6':
-                        $Item->cuttingtype = $request->cuttingtype;
-                        $Item->sugarcanetype = $request->sugarcanetype;
-                        $Item->sugarcanecuttinglabor = $request->sugarcanecuttinglabor;
-                        $Item->fuelcost = $request->fuelcost;
-                        break;
-                    case '7':
-                        $Item->laborwages = $request->laborwages;
-                        $Item->fuelcost = $request->fuelcost;
-                        break;
-                    default:
-                        DB::rollBack();
-                        return $this->returnErrorData("เกิดข้อผิดพลาด", 422);
-                        break;
-                }
+            switch ($Item->activitytype) {
+                case '0':
+                    $Item->soilImprovement = $request->soilImprovement;
+                    $Item->plowingtype = $request->plowingtype;
+                    $Item->subtypeplowing = $request->subtypeplowing;
+                    $Item->insecticidecost = $request->insecticidecost;
+                    $Item->equipmentrent = $request->equipmentrent;
+                    $Item->laborwages = $request->laborwages;
+                    $Item->fuelcost = $request->fuelcost;
+                    break;
+                case '1':
+                    $Item->sugarcane = $request->sugarcane;
+                    $Item->plantingsystem = $request->plantingsystem;
+                    $Item->fertilizer = $request->fertilizer;
+                    $Item->expenses = $request->expenses;
+                    $Item->sugartypecost = $request->sugartypecost;
+                    $Item->sugarcaneplantingcost = $request->sugarcaneplantingcost;
+                    $Item->fertilizercost = $request->fertilizercost;
+                    $Item->fuelcost = $request->fuelcost;
+                    break;
+                case '2':
+                    $Item->wateringsystem = $request->wateringsystem;
+                    $Item->laborwages = $request->laborwages;
+                    $Item->fuelcost = $request->fuelcost;
+                    break;
+                case '3':
+                    $Item->fertilizerquantity = $request->fertilizerquantity;
+                    $Item->otheringredients = $request->otheringredients;
+                    $Item->amountureafertilizer = $request->amountureafertilizer;
+                    $Item->herbicide = $request->herbicide;
+                    $Item->othertypes = $request->othertypes;
+                    $Item->otheringredientcosts = $request->otheringredientcosts;
+                    $Item->herbicidecost = $request->herbicidecost;
+                    $Item->fertilizer = $request->fertilizer;
+                    $Item->laborwages = $request->laborwages;
+                    $Item->fuelcost = $request->fuelcost;
+                    break;
+                case '4':
+                    $Item->weed = $request->weed;
+                    $Item->plantdiseases = $request->plantdiseases;
+                    $Item->pests = $request->pests;
+                    $Item->pesticidecost = $request->pesticidecost;
+                    $Item->laborwages = $request->laborwages;
+                    $Item->fuelcost = $request->fuelcost;
+                    break;
+                case '5':
+                    $Item->fertilizertype = $request->fertilizertype;
+                    $Item->fertilizer = $request->fertilizer;
+                    $Item->fertilizerquantity = $request->fertilizerquantity;
+                    $Item->laborwages = $request->laborwages;
+                    $Item->fuelcost = $request->fuelcost;
+                    break;
+                case '6':
+                    $Item->cuttingtype = $request->cuttingtype;
+                    $Item->sugarcanetype = $request->sugarcanetype;
+                    $Item->sugarcanecuttinglabor = $request->sugarcanecuttinglabor;
+                    $Item->fuelcost = $request->fuelcost;
+                    break;
+                case '7':
+                    $Item->laborwages = $request->laborwages;
+                    $Item->fuelcost = $request->fuelcost;
+                    break;
+                default:
+                    DB::rollBack();
+                    return $this->returnErrorData("เกิดข้อผิดพลาด", 422);
+                    break;
+            }
 
-                $Item->save();
+            $Item->save();
 
             //
 
