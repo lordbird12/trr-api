@@ -11,6 +11,37 @@ use App\Models\FactoryActivity;
 
 class FactoryActivityController extends Controller
 {
+    public function summaryActivity(Request $request)
+    {
+        $items = FactoryActivity::where('sugartype', $request->sugartype)
+            ->whereBetween('selectdate', [
+                \Carbon\Carbon::parse($request->start_date)->startOfDay(),
+                \Carbon\Carbon::parse($request->end_date)->endOfDay()
+            ])
+            ->get()
+            ->groupBy('plotsugar_id')
+            ->map(function ($group) {
+                return [
+                    'plotsugar_id' => $group->first()->plotsugar_id,
+                    'activities' => $group->map(function ($item) {
+                        // You can customize this to include only the fields you need
+                        return [
+                            'id' => $item->id,
+                            'frammer_id' => $item->frammer_id,
+                            'sugartype' => $item->sugartype,
+                            'activitytype' => $item->activitytype,
+                            'selectdate' => $item->selectdate,
+                            'image' => $item->image,
+                            'fuelcost' => $item->fuelcost,
+                            'laborwages' => $item->laborwages,
+                            // Add other fields as needed
+                        ];
+                    })->values(),
+                ];
+            })->values();
+    
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $items);
+    }
     public function getList($id)
     {
         $Item = FactoryActivity::where('province_code', $id)->get();
@@ -36,6 +67,7 @@ class FactoryActivityController extends Controller
         $activityType = $request->activitytype;
         $frammerId = $request->frammer_id;
         $sugarType = $request->sugartype;
+        $plotsugar_id = $request->plotsugar_id;
         $startDate = $request->start_date;
         $endDate = $request->end_date;
 
@@ -100,6 +132,10 @@ class FactoryActivityController extends Controller
 
         if (isset($sugarType)) {
             $D->where('sugartype', $sugarType);
+        }
+
+        if (isset($plotsugar_id)) {
+            $D->where('plotsugar_id', $plotsugar_id);
         }
 
         if (isset($startDate) && isset($endDate)) {

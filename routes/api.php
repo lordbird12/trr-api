@@ -173,6 +173,7 @@ Route::get('/get_deduct_paid/{frammer_id}/{month}/{year}', [DeductPaidController
 Route::resource('factoryactivity', FactoryActivityController::class);
 Route::post('/factoryactivity_page', [FactoryActivityController::class, 'getPage']);
 Route::get('/get_factoryactivity', [FactoryActivityController::class, 'getList']);
+Route::post('/get_summaryactivity', [FactoryActivityController::class, 'summaryActivity']);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
