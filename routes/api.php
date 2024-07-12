@@ -21,6 +21,7 @@ use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RadioController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FactoryActivityController;
+use App\Http\Controllers\RainController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -175,6 +176,10 @@ Route::post('/factoryactivity_page', [FactoryActivityController::class, 'getPage
 Route::get('/get_factoryactivity', [FactoryActivityController::class, 'getList']);
 Route::post('/get_summaryactivity', [FactoryActivityController::class, 'summaryActivity']);
 
+
+// Rain
+Route::resource('rain', RainController::class);
+Route::post('/get_rain', [RainController::class, 'getList']);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Route::group(['middleware' => 'checkjwt'], function () {
