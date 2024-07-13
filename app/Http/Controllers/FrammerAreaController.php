@@ -12,12 +12,15 @@ use Illuminate\Support\Facades\DB;
 
 class FrammerAreaController extends Controller
 {
-    public function getList()
+    public function getList(Request $request)
     {
-        $Item = FrammerArea::get()->toarray();
-
+        // return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $request->input());
+        $data = $request->input();
+        $Item = FrammerArea::where("frammer_id", $data['frammer_id'])
+            ->where("year", $data['year'])
+            ->get()->toArray();
+    
         if (!empty($Item)) {
-
             for ($i = 0; $i < count($Item); $i++) {
                 $Item[$i]['No'] = $i + 1;
             }
@@ -112,34 +115,14 @@ class FrammerAreaController extends Controller
      */
     public function store(Request $request)
     {
-        $loginBy = $request->login_by;
-
-        if (!isset($request->point)) {
-            return $this->returnErrorData('กรุณาระบุชื่อให้เรียบร้อย', 404);
-        } else
 
             DB::beginTransaction();
 
         try {
             $Item = new FrammerArea();
-            $prefix = "#FRMA-";
-            $id = IdGenerator::generate(['table' => 'frammer_areas', 'field' => 'code', 'length' => 9, 'prefix' => $prefix]);
-            $Item->code = $id;
             $Item->frammer_id = $request->frammer_id;
             $Item->year = $request->year;
-            $Item->contact_no = $request->contact_no;
-            $Item->test_no = $request->test_no;
             $Item->area = $request->area;
-            $Item->all_area = $request->all_area;
-            $Item->bonsucro = $request->bonsucro;
-            $Item->gets_framing = $request->gets_framing;
-            $Item->finish_good = $request->finish_good;
-            $Item->country_code = $request->country_code;
-            $Item->province_code = $request->province_code;
-
-            if ($request->image && $request->image != null && $request->image != 'null') {
-                $Item->image = $this->uploadImage($request->image, '/images/frammer_areas/');
-            }
 
             $Item->save();
             //
@@ -147,7 +130,7 @@ class FrammerAreaController extends Controller
             //log
             $userId = "admin";
             $type = 'เพิ่มรายการ';
-            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $request->name;
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type ;
             $this->Log($userId, $description, $type);
             //
 

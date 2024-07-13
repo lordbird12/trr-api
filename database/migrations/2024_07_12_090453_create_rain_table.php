@@ -17,6 +17,7 @@ class CreateRainTable extends Migration
             $table->increments('id');
 
             $table->integer('frammer_id')->unsigned()->nullable();//ไอดีเกษตรกร
+            // $table->foreign('frammer_id')->references('id')->on('frammers')->onDelete('cascade');
             $table->string('year')->nullable();//วันที่เลือกกิจกรรม
 
             $table->integer('plotsugar_id')->unsigned()->nullable();//ไร่ที่เลือก

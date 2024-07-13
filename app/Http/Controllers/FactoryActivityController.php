@@ -122,23 +122,23 @@ class FactoryActivityController extends Controller
 
         $D = FactoryActivity::select($col);
 
-        if (isset($activityType)) {
+        if ($activityType !== null) {
             $D->where('activitytype', $activityType);
         }
-
-        if (isset($frammerId)) {
+        
+        if ($frammerId !== null) {
             $D->where('frammer_id', $frammerId);
         }
-
-        if (isset($sugarType)) {
+        
+        if ($sugarType !== null) {
             $D->where('sugartype', $sugarType);
         }
-
-        if (isset($plotsugar_id)) {
+        
+        if ($plotsugar_id !== null) {
             $D->where('plotsugar_id', $plotsugar_id);
         }
-
-        if (isset($startDate) && isset($endDate)) {
+        
+        if ($startDate !== null && $endDate !== null) {
             $D->whereBetween('selectdate', [
                 \Carbon\Carbon::parse($startDate)->startOfDay(),
                 \Carbon\Carbon::parse($endDate)->endOfDay()
