@@ -22,6 +22,7 @@ use App\Http\Controllers\RadioController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FactoryActivityController;
 use App\Http\Controllers\RainController;
+use App\Http\Controllers\CompanyDetailController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -175,11 +176,14 @@ Route::resource('factoryactivity', FactoryActivityController::class);
 Route::post('/factoryactivity_page', [FactoryActivityController::class, 'getPage']);
 Route::get('/get_factoryactivity', [FactoryActivityController::class, 'getList']);
 Route::post('/get_summaryactivity', [FactoryActivityController::class, 'summaryActivity']);
-
+Route::post('/factoryactivity_page_mobile', [FactoryActivityController::class, 'getPagemobile']);
 
 // Rain
 Route::resource('rain', RainController::class);
 Route::post('/get_rain', [RainController::class, 'getList']);
+
+// CompanyDetails
+Route::resource('company', CompanyDetailController::class);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Route::group(['middleware' => 'checkjwt'], function () {

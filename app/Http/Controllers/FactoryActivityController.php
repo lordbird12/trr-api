@@ -13,19 +13,31 @@ class FactoryActivityController extends Controller
 {
     public function summaryActivity(Request $request)
     {
-        $items = FactoryActivity::where('sugartype', $request->sugartype)
-            ->whereBetween('selectdate', [
-                \Carbon\Carbon::parse($request->start_date)->startOfDay(),
-                \Carbon\Carbon::parse($request->end_date)->endOfDay()
-            ])
-            ->get()
+        $query = FactoryActivity::query();
+    
+        if ($request->has('frammer_id')) {
+            $query->where('frammer_id', $request->frammer_id);
+        }
+    
+        if ($request->has('sugartype')) {
+            $query->where('sugartype', $request->sugartype);
+        }
+    
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+            $query->whereBetween('selectdate', [$startDate, $endDate]);
+        }
+        $query->orderBy('plotsugar_id', 'asc');
+
+        $items = $query->get()
             ->groupBy('plotsugar_id')
             ->map(function ($group) {
                 return [
                     'plotsugar_id' => $group->first()->plotsugar_id,
-                    'activities' => $group->map(function ($item) {
-                        // You can customize this to include only the fields you need
+                    'activities' => $group->map(function ($item,$index) {
                         return [
+                            'No' => $index + 1, 
                             'id' => $item->id,
                             'frammer_id' => $item->frammer_id,
                             'sugartype' => $item->sugartype,
@@ -42,6 +54,7 @@ class FactoryActivityController extends Controller
     
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $items);
     }
+    
     public function getList($id)
     {
         $Item = FactoryActivity::where('province_code', $id)->get();
@@ -247,11 +260,9 @@ class FactoryActivityController extends Controller
             $D->where('frammer_id', $frammerId);
         }
 
-        if (!empty($plotsugar_ids) && is_array($plotsugar_ids)) {
-            $D->whereIn('plotsugar_id', array_map('strval', $plotsugar_ids));
-        }
-
-        if (isset($plotsugar_id)) {
+        if (!empty($plotsugar_id) && is_array($plotsugar_id)) {
+            $D->whereIn('plotsugar_id', array_map('strval', $plotsugar_id));
+        } elseif (isset($plotsugar_id)) {
             $D->where('plotsugar_id', $plotsugar_id);
         }
 
