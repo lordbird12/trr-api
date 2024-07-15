@@ -63,6 +63,7 @@ class FactoryActivityController extends Controller
         $search = $request->search;
         $start = $request->start;
         $page = $start / $length + 1;
+        // dd($page);
 
         $activityType = $request->activitytype;
         $frammerId = $request->frammer_id;
@@ -122,23 +123,139 @@ class FactoryActivityController extends Controller
 
         $D = FactoryActivity::select($col);
 
-        if ($activityType !== null) {
+        if (isset($activityType)) {
             $D->where('activitytype', $activityType);
         }
-        
-        if ($frammerId !== null) {
+
+        if (isset($frammerId)) {
             $D->where('frammer_id', $frammerId);
         }
-        
-        if ($sugarType !== null) {
+
+        if (isset($sugarType)) {
             $D->where('sugartype', $sugarType);
         }
-        
-        if ($plotsugar_id !== null) {
+
+        if (isset($plotsugar_id)) {
             $D->where('plotsugar_id', $plotsugar_id);
         }
-        
-        if ($startDate !== null && $endDate !== null) {
+
+        if (isset($startDate) && isset($endDate)) {
+            $D->whereBetween('selectdate', [
+                \Carbon\Carbon::parse($startDate)->startOfDay(),
+                \Carbon\Carbon::parse($endDate)->endOfDay()
+            ]);
+        }
+
+        if ($orderby[$order[0]['column']]) {
+            $D->orderBy($orderby[$order[0]['column']], $order[0]['dir']);
+        }
+
+        if ($search['value'] != '' && $search['value'] != null) {
+            $D->where(function ($query) use ($search, $col) {
+                foreach ($col as $c) {
+                    $query->orWhere($c, 'like', '%' . $search['value'] . '%');
+                }
+            });
+        }
+
+        $d = $D->paginate($length, ['*'], 'page', $page);
+
+        if ($d->isNotEmpty()) {
+            $No = (($page - 1) * $length);
+
+            foreach ($d as $key => $item) {
+                $No++;
+                $item->No = $No;
+            }
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $d);
+    }
+
+    public function getPagemobile(Request $request)
+    {
+        $length = $request->length;
+        $order = $request->order;
+        $search = $request->search;
+        $start = $request->start;
+        $page = $start / $length + 1;
+        // dd($page);
+
+        $activityType = $request->activitytype;
+        $frammerId = $request->frammer_id;
+        $sugarType = $request->sugartype;
+        $plotsugar_id = $request->plotsugar_id;
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+
+        $col = [
+            'id', 'activitytype', 'frammer_id', 'sugartype', 'plotsugar_id',
+            'selectdate', 'image', 'created_at', 'updated_at'
+        ];
+
+        switch ($activityType) {
+            case '0':
+                $col = array_merge($col, ['soilImprovement', 'plowingtype', 'subtypeplowing', 'insecticidecost', 'equipmentrent', 'laborwages', 'fuelcost']);
+                break;
+            case '1':
+                $col = array_merge($col, ['sugarcane', 'plantingsystem', 'fertilizer', 'expenses', 'sugartypecost', 'sugarcaneplantingcost', 'fertilizercost', 'fuelcost']);
+                break;
+            case '2':
+                $col = array_merge($col, ['wateringsystem', 'laborwages', 'fuelcost']);
+                break;
+            case '3':
+                $col = array_merge($col, ['fertilizerquantity', 'otheringredients', 'amountureafertilizer', 'herbicide', 'othertypes', 'otheringredientcosts', 'herbicidecost', 'fertilizer', 'laborwages', 'fuelcost']);
+                break;
+            case '4':
+                $col = array_merge($col, ['weed', 'plantdiseases', 'pests', 'pesticidecost', 'laborwages', 'fuelcost']);
+                break;
+            case '5':
+                $col = array_merge($col, ['fertilizertype', 'fertilizer', 'fertilizerquantity', 'laborwages', 'fuelcost']);
+                break;
+            case '6':
+                $col = array_merge($col, ['cuttingtype', 'sugarcanetype', 'sugarcanecuttinglabor', 'fuelcost']);
+                break;
+            case '7':
+                $col = array_merge($col, ['laborwages', 'fuelcost']);
+                break;
+            default:
+                $col = array_merge($col, [
+                    'soilImprovement', 'plowingtype', 'subtypeplowing', 'insecticidecost', 'equipmentrent',
+                    'sugarcane', 'plantingsystem', 'fertilizer', 'expenses', 'sugartypecost', 'sugarcaneplantingcost', 'fertilizercost',
+                    'wateringsystem',
+                    'fertilizerquantity', 'otheringredients', 'amountureafertilizer', 'herbicide', 'othertypes', 'otheringredientcosts', 'herbicidecost',
+                    'weed', 'plantdiseases', 'pests', 'pesticidecost',
+                    'fertilizertype',
+                    'cuttingtype', 'sugarcanetype', 'sugarcanecuttinglabor',
+                    'laborwages', 'fuelcost'
+                ]);
+                break;
+        }
+
+        $orderby = [
+            '', 'activitytype', 'frammer_id', 'sugartype', 'plotsugar_id',
+            'selectdate', 'created_at'
+        ];
+
+        $D = FactoryActivity::select($col);
+
+        if (isset($activityType)) {
+            $D->where('activitytype', $activityType);
+        }
+
+        if (isset($frammerId)) {
+            $D->where('frammer_id', $frammerId);
+        }
+
+        if (!empty($plotsugar_ids) && is_array($plotsugar_ids)) {
+            $D->whereIn('plotsugar_id', array_map('strval', $plotsugar_ids));
+        }
+
+        if (isset($plotsugar_id)) {
+            $D->where('plotsugar_id', $plotsugar_id);
+        }
+
+        if (isset($startDate) && isset($endDate)) {
             $D->whereBetween('selectdate', [
                 \Carbon\Carbon::parse($startDate)->startOfDay(),
                 \Carbon\Carbon::parse($endDate)->endOfDay()

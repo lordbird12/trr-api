@@ -15,6 +15,11 @@ class RainController extends Controller
             ->where('year', $request->year)
             ->get();
 
+            $Item = $Item->map(function ($item) {
+                $item->image = url($item->image);
+                return $item;
+            });
+
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
     /**
@@ -116,11 +121,12 @@ class RainController extends Controller
     public function update(Request $request, $id)
     {
 
+        // dd($request->all());
         DB::beginTransaction();
 
         try {
             $Item = Rain::find($id);
-            $Item->frammer_id = $Item->frammer_id;
+            $Item->frammer_id = $request->frammer_id;
             $Item->year = $Item->year;
             $Item->plotsugar_id = $Item->plotsugar_id;
             $Item->last_year_cumulative_rain = $Item->last_year_cumulative_rain;
