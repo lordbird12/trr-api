@@ -93,6 +93,13 @@ class CompanyDetailController extends Controller
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
 
+
+    public function getbyfacID($id)
+    {
+        $Item = CompanyDetail::where('factory_id', $id)->first();
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+    }
     /**
      * Show the form for editing the specified resource.
      *

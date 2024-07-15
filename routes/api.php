@@ -184,6 +184,7 @@ Route::post('/get_rain', [RainController::class, 'getList']);
 
 // CompanyDetails
 Route::resource('company', CompanyDetailController::class);
+Route::get('/get_company_byfactory/{id}', [CompanyDetailController::class, 'getbyfacID']);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Route::group(['middleware' => 'checkjwt'], function () {
