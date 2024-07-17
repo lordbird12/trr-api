@@ -177,6 +177,7 @@ Route::post('/factoryactivity_page', [FactoryActivityController::class, 'getPage
 Route::get('/get_factoryactivity', [FactoryActivityController::class, 'getList']);
 Route::post('/get_summaryactivity', [FactoryActivityController::class, 'summaryActivity']);
 Route::post('/factoryactivity_page_mobile', [FactoryActivityController::class, 'getPagemobile']);
+Route::post('/factoryactivity_schedule', [FactoryActivityController::class, 'schedule']);
 
 // Rain
 Route::resource('rain', RainController::class);

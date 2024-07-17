@@ -69,6 +69,33 @@ class FactoryActivityController extends Controller
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
 
+    public function schedule(Request $request)
+    {
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+        $frammerId = $request->frammer_id;
+
+        $Item = FactoryActivity::where('frammer_id', $frammerId)
+        ->whereDate('selectdate', '>=', $startDate)
+        ->whereDate('selectdate', '<=', $endDate)
+        ->get();
+
+        if (!$Item->isEmpty()) {
+            $Item = $Item->map(function ($item, $index) {
+                $filteredItem = collect($item->toArray())
+                    ->filter(function ($value) {
+                        return $value !== null;
+                    })
+                    ->toArray();
+                
+                $filteredItem['No'] = $index + 1;
+                return $filteredItem;
+            });
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+    }
+
     public function getPage(Request $request)
     {
         $length = $request->length;
@@ -179,6 +206,9 @@ class FactoryActivityController extends Controller
             foreach ($d as $key => $item) {
                 $No++;
                 $item->No = $No;
+                if(isset($item->image)){
+                   $item->image = url($item->image); 
+                } 
             }
         }
 
@@ -267,10 +297,8 @@ class FactoryActivityController extends Controller
         }
 
         if (isset($startDate) && isset($endDate)) {
-            $D->whereBetween('selectdate', [
-                \Carbon\Carbon::parse($startDate)->startOfDay(),
-                \Carbon\Carbon::parse($endDate)->endOfDay()
-            ]);
+            $D->whereDate('selectdate', '>=', $startDate)
+              ->whereDate('selectdate', '<=', $endDate);
         }
 
         if ($orderby[$order[0]['column']]) {
@@ -293,6 +321,9 @@ class FactoryActivityController extends Controller
             foreach ($d as $key => $item) {
                 $No++;
                 $item->No = $No;
+                if(isset($item->image)){
+                    $item->image = url($item->image); 
+                 }
             }
         }
 
@@ -468,7 +499,7 @@ class FactoryActivityController extends Controller
         if (!$item) {
             return $this->returnError('Item not found', 404);
         }
-    
+
         $activityType = $item->activitytype;
     
         $data = [
@@ -478,11 +509,19 @@ class FactoryActivityController extends Controller
             'sugartype' => $item->sugartype,
             'plotsugar_id' => $item->plotsugar_id,
             'selectdate' => $item->selectdate,
-            'image' => $item->image,
             'created_at' => $item->created_at,
             'updated_at' => $item->updated_at,
         ];
     
+        if(isset($item->image)) {
+            $data = array_merge($data, [
+                'image' => url($item->image)
+            ]);
+        }else{
+            $data = array_merge($data, [
+                'image' => null
+            ]);
+        }
         switch ($activityType) {
             case '0':
                 $data = array_merge($data, [
