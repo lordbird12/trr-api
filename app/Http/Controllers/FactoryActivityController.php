@@ -222,7 +222,7 @@ class FactoryActivityController extends Controller
         $search = $request->search;
         $start = $request->start;
         $page = $start / $length + 1;
-        // dd($page);
+        // dd($request->all());
 
         $activityType = $request->activitytype;
         $frammerId = $request->frammer_id;
@@ -284,6 +284,10 @@ class FactoryActivityController extends Controller
 
         if (isset($activityType)) {
             $D->where('activitytype', $activityType);
+        }
+
+        if (isset($sugarType)) {
+            $D->where('sugartype', $sugarType);
         }
 
         if (isset($frammerId)) {
