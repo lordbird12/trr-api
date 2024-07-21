@@ -23,6 +23,10 @@ class FactoryActivityController extends Controller
             $query->where('sugartype', $request->sugartype);
         }
     
+        if (isset($request->activitytype)) {
+            $query->where('activitytype', $request->activitytype);
+        }
+
         if ($request->has('start_date') && $request->has('end_date')) {
             $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
             $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
