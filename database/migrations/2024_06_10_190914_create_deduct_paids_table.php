@@ -19,6 +19,12 @@ class CreateDeductPaidsTable extends Migration
             $table->integer('frammer_id')->unsigned()->index();
             $table->foreign('frammer_id')->references('id')->on('frammers')->onDelete('cascade');
 
+            $table->integer('factory_activity_id')->unsigned()->index();
+            $table->foreign('factory_activity_id')->references('id')->on('factory_activity')->onDelete('cascade');
+
+            $table->integer('deduct_type_id')->unsigned()->index();
+            $table->foreign('deduct_type_id')->references('id')->on('deduct_types')->onDelete('cascade');
+
             $table->string('code');
             $table->double('paid', 10, 2)->default(0.00);
 

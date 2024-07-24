@@ -19,6 +19,9 @@ class CreateIncomePaidsTable extends Migration
             $table->integer('frammer_id')->unsigned()->index();
             $table->foreign('frammer_id')->references('id')->on('frammers')->onDelete('cascade');
 
+            $table->integer('income_type_id')->unsigned()->index();
+            $table->foreign('income_type_id')->references('id')->on('income_types')->onDelete('cascade');
+
             $table->string('code');
             $table->double('paid', 10, 2)->default(0.00);
 

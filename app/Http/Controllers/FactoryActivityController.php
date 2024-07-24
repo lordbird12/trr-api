@@ -668,6 +668,7 @@ class FactoryActivityController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // dd(request()->all());
 
         try {
             DB::beginTransaction();
@@ -678,12 +679,15 @@ class FactoryActivityController extends Controller
             $Item->sugartype = $Item->sugartype;
             $Item->plotsugar_id = $Item->plotsugar_id;
             $Item->selectdate = $Item->selectdate;
-            $Item->image = $Item->image;
-
+            if(isset($request->image)){
+                $Item->image = $request->image;
+            }else{
+                $Item->image = $Item->image;
+            }
 
             switch ($Item->activitytype) {
                 case '0':
-                    $Item->soilImprovement = $request->soilImprovement;
+                    $Item->soilImprovement = $request->soil_improvement;
                     $Item->plowingtype = $request->plowingtype;
                     $Item->subtypeplowing = $request->subtypeplowing;
                     $Item->insecticidecost = $request->insecticidecost;
