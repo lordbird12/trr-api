@@ -23,6 +23,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\FactoryActivityController;
 use App\Http\Controllers\RainController;
 use App\Http\Controllers\CompanyDetailController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -186,6 +187,11 @@ Route::post('/get_rain', [RainController::class, 'getList']);
 // CompanyDetails
 Route::resource('company', CompanyDetailController::class);
 Route::get('/get_company_byfactory/{id}', [CompanyDetailController::class, 'getbyfacID']);
+
+//dashboard
+Route::post('/get_byactivitytype', [DashboardController::class, 'groutpby_activitytype']);
+Route::post('/get_byweekly', [DashboardController::class, 'groutpby_weekly']);
+Route::post('/get_incomededuct', [DashboardController::class, 'incomededuct']);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Route::group(['middleware' => 'checkjwt'], function () {

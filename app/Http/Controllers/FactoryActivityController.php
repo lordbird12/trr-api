@@ -8,21 +8,22 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\FactoryActivity;
+use App\Models\DeductPaid;
 
 class FactoryActivityController extends Controller
 {
     public function summaryActivity(Request $request)
     {
         $query = FactoryActivity::query();
-    
+
         if ($request->has('frammer_id')) {
             $query->where('frammer_id', $request->frammer_id);
         }
-    
+
         if ($request->has('sugartype')) {
             $query->where('sugartype', $request->sugartype);
         }
-    
+
         if (isset($request->activitytype)) {
             $query->where('activitytype', $request->activitytype);
         }
@@ -39,9 +40,9 @@ class FactoryActivityController extends Controller
             ->map(function ($group) {
                 return [
                     'plotsugar_id' => $group->first()->plotsugar_id,
-                    'activities' => $group->map(function ($item,$index) {
+                    'activities' => $group->map(function ($item, $index) {
                         return [
-                            'No' => $index + 1, 
+                            'No' => $index + 1,
                             'id' => $item->id,
                             'frammer_id' => $item->frammer_id,
                             'sugartype' => $item->sugartype,
@@ -55,10 +56,10 @@ class FactoryActivityController extends Controller
                     })->values(),
                 ];
             })->values();
-    
+
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $items);
     }
-    
+
     public function getList($id)
     {
         $Item = FactoryActivity::where('province_code', $id)->get();
@@ -80,9 +81,9 @@ class FactoryActivityController extends Controller
         $frammerId = $request->frammer_id;
 
         $Item = FactoryActivity::where('frammer_id', $frammerId)
-        ->whereDate('selectdate', '>=', $startDate)
-        ->whereDate('selectdate', '<=', $endDate)
-        ->get();
+            ->whereDate('selectdate', '>=', $startDate)
+            ->whereDate('selectdate', '<=', $endDate)
+            ->get();
 
         if (!$Item->isEmpty()) {
             $Item = $Item->map(function ($item, $index) {
@@ -91,7 +92,7 @@ class FactoryActivityController extends Controller
                         return $value !== null;
                     })
                     ->toArray();
-                
+
                 $filteredItem['No'] = $index + 1;
                 return $filteredItem;
             });
@@ -210,9 +211,9 @@ class FactoryActivityController extends Controller
             foreach ($d as $key => $item) {
                 $No++;
                 $item->No = $No;
-                if(isset($item->image)){
-                   $item->image = url($item->image); 
-                } 
+                if (isset($item->image)) {
+                    $item->image = url($item->image);
+                }
             }
         }
 
@@ -306,7 +307,7 @@ class FactoryActivityController extends Controller
 
         if (isset($startDate) && isset($endDate)) {
             $D->whereDate('selectdate', '>=', $startDate)
-              ->whereDate('selectdate', '<=', $endDate);
+                ->whereDate('selectdate', '<=', $endDate);
         }
 
         if ($orderby[$order[0]['column']]) {
@@ -329,9 +330,9 @@ class FactoryActivityController extends Controller
             foreach ($d as $key => $item) {
                 $No++;
                 $item->No = $No;
-                if(isset($item->image)){
-                    $item->image = url($item->image); 
-                 }
+                if (isset($item->image)) {
+                    $item->image = url($item->image);
+                }
             }
         }
 
@@ -393,6 +394,8 @@ class FactoryActivityController extends Controller
         try {
             DB::beginTransaction();
 
+            $data = [];
+
             foreach ($request->plotsugar as $value) {
                 $Item = new FactoryActivity();
                 $Item->activitytype = $request->activitytype;
@@ -400,8 +403,9 @@ class FactoryActivityController extends Controller
                 $Item->sugartype = $request->sugartype;
                 $Item->plotsugar_id = $value;
                 $Item->selectdate = $request->selectdate;
-                $Item->image = $request->image;
 
+                $date = Carbon::parse($request->selectdate);
+                $Item->image = $request->image;
 
                 switch ($request->activitytype) {
                     case '0':
@@ -412,6 +416,14 @@ class FactoryActivityController extends Controller
                         $Item->equipmentrent = $request->equipmentrent;
                         $Item->laborwages = $request->laborwages;
                         $Item->fuelcost = $request->fuelcost;
+
+                        $data = array_merge($data, [
+                            "insecticidecost" => $request->insecticidecost,
+                            "equipmentrent" => $request->equipmentrent,
+                            "laborwages" => $request->laborwages,
+                            "fuelcost" => $request->fuelcost
+                        ]);
+
                         break;
                     case '1':
                         $Item->sugarcane = $request->sugarcane;
@@ -422,11 +434,24 @@ class FactoryActivityController extends Controller
                         $Item->sugarcaneplantingcost = $request->sugarcaneplantingcost;
                         $Item->fertilizercost = $request->fertilizercost;
                         $Item->fuelcost = $request->fuelcost;
+
+                        $data = array_merge($data, [
+                            "sugartypecost" => $request->sugartypecost,
+                            "sugarcaneplantingcost" => $request->sugarcaneplantingcost,
+                            "fertilizercost" => $request->fertilizercost,
+                            "fuelcost" => $request->fuelcost
+                        ]);
+
                         break;
                     case '2':
                         $Item->wateringsystem = $request->wateringsystem;
                         $Item->laborwages = $request->laborwages;
                         $Item->fuelcost = $request->fuelcost;
+
+                        $data = array_merge($data, [
+                            "laborwages" => $request->laborwages,
+                            "fuelcost" => $request->fuelcost
+                        ]);
                         break;
                     case '3':
                         $Item->fertilizerquantity = $request->fertilizerquantity;
@@ -439,6 +464,15 @@ class FactoryActivityController extends Controller
                         $Item->fertilizer = $request->fertilizer;
                         $Item->laborwages = $request->laborwages;
                         $Item->fuelcost = $request->fuelcost;
+
+                        $data = array_merge($data, [
+                            "amountureafertilizer" => $request->amountureafertilizer,
+                            "otheringredientcosts" => $request->otheringredientcosts,
+                            "herbicidecost" => $request->herbicidecost,
+                            "fertilizer" => $request->fertilizer,
+                            "laborwages" => $request->laborwages,
+                            "fuelcost" => $request->fuelcost
+                        ]);
                         break;
                     case '4':
                         $Item->weed = $request->weed;
@@ -447,6 +481,12 @@ class FactoryActivityController extends Controller
                         $Item->pesticidecost = $request->pesticidecost;
                         $Item->laborwages = $request->laborwages;
                         $Item->fuelcost = $request->fuelcost;
+
+                        $data = array_merge($data, [
+                            "pesticidecost" => $request->pesticidecost,
+                            "laborwages" => $request->laborwages,
+                            "fuelcost" => $request->fuelcost
+                        ]);
                         break;
                     case '5':
                         $Item->fertilizertype = $request->fertilizertype;
@@ -454,16 +494,32 @@ class FactoryActivityController extends Controller
                         $Item->fertilizerquantity = $request->fertilizerquantity;
                         $Item->laborwages = $request->laborwages;
                         $Item->fuelcost = $request->fuelcost;
+
+                        $data = array_merge($data, [
+                            "fertilizer" => $request->fertilizer,
+                            "laborwages" => $request->laborwages,
+                            "fuelcost" => $request->fuelcost
+                        ]);
                         break;
                     case '6':
                         $Item->cuttingtype = $request->cuttingtype;
                         $Item->sugarcanetype = $request->sugarcanetype;
                         $Item->sugarcanecuttinglabor = $request->sugarcanecuttinglabor;
                         $Item->fuelcost = $request->fuelcost;
+
+                        $data = array_merge($data, [
+                            "sugarcanecuttinglabor" => $request->sugarcanecuttinglabor,
+                            "fuelcost" => $request->fuelcost
+                        ]);
                         break;
                     case '7':
                         $Item->laborwages = $request->laborwages;
                         $Item->fuelcost = $request->fuelcost;
+
+                        $data = array_merge($data, [
+                            "laborwages" => $request->laborwages,
+                            "fuelcost" => $request->fuelcost
+                        ]);
                         break;
                     default:
                         DB::rollBack();
@@ -472,6 +528,63 @@ class FactoryActivityController extends Controller
                 }
 
                 $Item->save();
+
+                foreach ($data as $key => $value) {
+                    $deduct = new DeductPaid();
+                    $deduct->frammer_id = $request->frammer_id;
+                    $deduct->factory_activity_id  = $Item->id;
+                    switch ($key) {
+                        case 'fuelcost':
+                            $deduct->deduct_type_id = 1; // เงินหักค่าเชื้อเพลิง
+                            break;
+                        case 'laborwages':
+                            $deduct->deduct_type_id = 2; // เงินหักค่าจ้างแรงงาน
+                            break;
+                        case 'fertilizer':
+                            $deduct->deduct_type_id = 3; // เงินหักค่าปุ๋ยรองพื้น
+                            break;
+                        case 'pesticidecost':
+                            $deduct->deduct_type_id = 4; // เงินหักค่ากำจัดศัตรูพืช
+                            break;
+                        case 'equipmentrent':
+                            $deduct->deduct_type_id = 5; // เงินหักค่าเช่าอุปกรณ์
+                            break;
+                        case 'sugartypecost':
+                            $deduct->deduct_type_id = 6; // เงินหักค่าพันธ์อ้อย
+                            break;
+                        case 'sugarcaneplantingcost':
+                            $deduct->deduct_type_id = 7; // เงินหักค่าปลูกอ้อย
+                            break;
+                        case 'amountureafertilizer':
+                            $deduct->deduct_type_id = 8; // เงินหักค่าปุ๋ยยูเรีย
+                            break;
+                        case 'otheringredientcosts':
+                            $deduct->deduct_type_id = 9; // เงินหักค่าส่วนผสมอื่นๆ
+                            break;
+                        case 'herbicidecost':
+                            $deduct->deduct_type_id = 10; // เงินหักค่ากำจัดวัชพืช
+                            break;
+                        case 'insecticidecost':
+                            $deduct->deduct_type_id = 11; // เงินหักค่ากำจัดวัชพืช
+                            break;
+                        case 'sugarcanecuttinglabor':
+                            $deduct->deduct_type_id = 12; // เงินหักค่าตัดอ้อย
+                            break;
+                        case 'fertilizercost':
+                            $deduct->deduct_type_id = 3; // เงินหักค่าปุ๋ยรองพื้น
+                            break;
+                        default:
+                            $deduct->deduct_type_id = 1; // Default value if no match is found
+                            break;
+                    }
+                    $deduct->paid = $value;
+                    $deduct->month = $date->month;
+                    $deduct->year = $date->year;
+                    // dd($deduct->all());
+                    $deduct->save();
+                }
+
+                $data = [];
             }
 
             //
@@ -503,13 +616,13 @@ class FactoryActivityController extends Controller
     public function show($id)
     {
         $item = FactoryActivity::find($id);
-    
+
         if (!$item) {
             return $this->returnError('Item not found', 404);
         }
 
         $activityType = $item->activitytype;
-    
+
         $data = [
             'id' => $item->id,
             'activitytype' => $item->activitytype,
@@ -520,12 +633,12 @@ class FactoryActivityController extends Controller
             'created_at' => $item->created_at,
             'updated_at' => $item->updated_at,
         ];
-    
-        if(isset($item->image)) {
+
+        if (isset($item->image)) {
             $data = array_merge($data, [
                 'image' => url($item->image)
             ]);
-        }else{
+        } else {
             $data = array_merge($data, [
                 'image' => null
             ]);
@@ -643,10 +756,10 @@ class FactoryActivityController extends Controller
                 ]);
                 break;
         }
-    
+
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
     }
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -679,9 +792,9 @@ class FactoryActivityController extends Controller
             $Item->sugartype = $Item->sugartype;
             $Item->plotsugar_id = $Item->plotsugar_id;
             $Item->selectdate = $Item->selectdate;
-            if(isset($request->image)){
+            if (isset($request->image)) {
                 $Item->image = $request->image;
-            }else{
+            } else {
                 $Item->image = $Item->image;
             }
 

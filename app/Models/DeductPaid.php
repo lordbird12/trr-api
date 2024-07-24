@@ -21,4 +21,9 @@ class DeductPaid extends Model
     {
         return $this->belongsTo(DeductType::class);
     }
+
+    public function factory_activity()
+    {
+        return $this->belongsTo(FactoryActivity::class, "factory_activity_id");
+    }
 }

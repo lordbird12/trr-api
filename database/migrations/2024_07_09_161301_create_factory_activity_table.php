@@ -22,8 +22,9 @@ class CreateFactoryActivityTable extends Migration
             $table->string('sugartype');//ประเภทน้ำตาล
             $table->integer('plotsugar_id')->unsigned()->nullable();//ไร่ที่เลือก
             $table->string('activitytype')->nullable();//ประเภทกิจกรรม
+            $table->integer('NO')->unsigned()->nullable();//ไอดีเกษตรกร
             $table->string('selectdate')->nullable();//วันที่เลือกกิจกรรม
-            $table->string('image', 255)->charset('utf8')->nullable();//รูปภาพ 
+            $table->string('image', 255)->charset('utf8')->nullable();//รูปภาพ
             
             //ใช้ร่วมกันบางตัว
             $table->double('fuelcost')->nullable();//ค่าเชื้อเพลิง
@@ -86,7 +87,7 @@ class CreateFactoryActivityTable extends Migration
             $table->string('cuttingtype')->nullable();//ประเภทการตัดอ้อย
             $table->string('sugarcanetype')->nullable();//ประเภทอ้อย
             $table->double('sugarcanecuttinglabor')->nullable();//ค่าตัดอ้อย
-            //ค่าเชื้อเพลิง 
+            //ค่าเชื้อเพลิง
 
             //ขนส่งอ้อย 7
             //ค่าจ้างแรงงาน
