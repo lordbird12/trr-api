@@ -179,6 +179,7 @@ Route::get('/get_factoryactivity', [FactoryActivityController::class, 'getList']
 Route::post('/get_summaryactivity', [FactoryActivityController::class, 'summaryActivity']);
 Route::post('/factoryactivity_page_mobile', [FactoryActivityController::class, 'getPagemobile']);
 Route::post('/factoryactivity_schedule', [FactoryActivityController::class, 'schedule']);
+Route::post('/check_no', [FactoryActivityController::class, 'check_no']);
 
 // Rain
 Route::resource('rain', RainController::class);
@@ -186,12 +187,13 @@ Route::post('/get_rain', [RainController::class, 'getList']);
 
 // CompanyDetails
 Route::resource('company', CompanyDetailController::class);
-Route::get('/get_company_byfactory/{id}', [CompanyDetailController::class, 'getbyfacID']);
+Route::post('/get_company_byfactory', [CompanyDetailController::class, 'getbyfacID']);
 
 //dashboard
 Route::post('/get_byactivitytype', [DashboardController::class, 'groutpby_activitytype']);
 Route::post('/get_byweekly', [DashboardController::class, 'groutpby_weekly']);
 Route::post('/get_incomededuct', [DashboardController::class, 'incomededuct']);
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Route::group(['middleware' => 'checkjwt'], function () {

@@ -42,7 +42,7 @@ class FactoryActivityController extends Controller
                     'plotsugar_id' => $group->first()->plotsugar_id,
                     'activities' => $group->map(function ($item, $index) {
                         return [
-                            'No' => $index + 1,
+                            'No' => $item->No,
                             'id' => $item->id,
                             'frammer_id' => $item->frammer_id,
                             'sugartype' => $item->sugartype,
@@ -74,6 +74,35 @@ class FactoryActivityController extends Controller
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
 
+    public function check_no(Request $request)
+    {
+        // dd($request->all());
+        $query = FactoryActivity::query();
+
+        if ($request->has('frammer_id')) {
+            $query->where('frammer_id', $request->frammer_id);
+        }
+
+        if ($request->has('sugartype')) {
+            $query->where('sugartype', $request->sugartype);
+        }
+
+        if (isset($request->activitytype)) {
+            $query->where('activitytype', $request->activitytype);
+        }
+
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+            $query->whereBetween('selectdate', [$startDate, $endDate]);
+        }
+        $query->orderBy('plotsugar_id', 'asc');
+        $items = $query->get();
+        $lastItem = $items->last()->No + 1 ?? 0;
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $lastItem);
+    }
+
     public function schedule(Request $request)
     {
         $startDate = $request->start_date;
@@ -93,7 +122,7 @@ class FactoryActivityController extends Controller
                     })
                     ->toArray();
 
-                $filteredItem['No'] = $index + 1;
+                $filteredItem['No'] = $item->No;
                 return $filteredItem;
             });
         }
@@ -398,6 +427,7 @@ class FactoryActivityController extends Controller
 
             foreach ($request->plotsugar as $value) {
                 $Item = new FactoryActivity();
+                $Item->No = $request->no;
                 $Item->activitytype = $request->activitytype;
                 $Item->frammer_id = $request->frammer_id;
                 $Item->sugartype = $request->sugartype;
@@ -787,6 +817,7 @@ class FactoryActivityController extends Controller
             DB::beginTransaction();
 
             $Item =  FactoryActivity::find($id);
+            $Item->No = $Item->No;
             $Item->activitytype = $Item->activitytype;
             $Item->frammer_id = $Item->frammer_id;
             $Item->sugartype = $Item->sugartype;

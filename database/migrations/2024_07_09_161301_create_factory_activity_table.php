@@ -22,7 +22,7 @@ class CreateFactoryActivityTable extends Migration
             $table->string('sugartype');//ประเภทน้ำตาล
             $table->integer('plotsugar_id')->unsigned()->nullable();//ไร่ที่เลือก
             $table->string('activitytype')->nullable();//ประเภทกิจกรรม
-            $table->integer('NO')->unsigned()->nullable();//ไอดีเกษตรกร
+            $table->integer('NO')->unsigned()->nullable()->default(0);//ไอดีเกษตรกร
             $table->string('selectdate')->nullable();//วันที่เลือกกิจกรรม
             $table->string('image', 255)->charset('utf8')->nullable();//รูปภาพ
             

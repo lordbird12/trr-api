@@ -94,8 +94,10 @@ class CompanyDetailController extends Controller
     }
 
 
-    public function getbyfacID($id)
+    public function getbyfacID(Request $request)
     {
+        // dd($request->all());
+        $id = $request->factory_id;
         $Item = CompanyDetail::where('factory_id', $id)->first();
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);

@@ -123,6 +123,14 @@ class FrammerAreaController extends Controller
             $Item->frammer_id = $request->frammer_id;
             $Item->year = $request->year;
             $Item->area = $request->area;
+            $Item->area_size = $request->area_size;
+            $Item->sugarcane_age = $request->sugarcane_age;
+            $Item->sugarcane_type = $request->sugarcane_type;
+            $Item->product_per_rai = $request->product_per_rai;
+            $Item->measuring_point = $request->measuring_point;
+            $Item->distance = $request->distance;
+            $Item->last_year_cumulative_rain = $request->last_year_cumulative_rain;
+            $Item->curr_year_cumulative_rain = $request->curr_year_cumulative_rain;
 
             $Item->save();
             //
