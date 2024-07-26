@@ -64,12 +64,12 @@ class FactoryActivityController extends Controller
     {
         $Item = FactoryActivity::where('province_code', $id)->get();
 
-        if (!empty($Item)) {
+        // if (!empty($Item)) {
 
-            for ($i = 0; $i < count($Item); $i++) {
-                $Item[$i]['No'] = $i + 1;
-            }
-        }
+        //     for ($i = 0; $i < count($Item); $i++) {
+        //         $Item[$i]['No'] = $i + 1;
+        //     }
+        // }
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
@@ -96,11 +96,15 @@ class FactoryActivityController extends Controller
             $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
             $query->whereBetween('selectdate', [$startDate, $endDate]);
         }
-        $query->orderBy('plotsugar_id', 'asc');
-        $items = $query->get();
-        $lastItem = $items->last()->No + 1 ?? 0;
 
-        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $lastItem);
+        $query->orderBy('plotsugar_id', 'asc');
+
+        $maxNo = $query->max('No');
+
+        $nextNo = $maxNo !== null ? $maxNo + 1 : 1;
+
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $nextNo);
     }
 
     public function schedule(Request $request)
@@ -147,7 +151,7 @@ class FactoryActivityController extends Controller
         $endDate = $request->end_date;
 
         $col = [
-            'id', 'activitytype', 'frammer_id', 'sugartype', 'plotsugar_id',
+            'id', 'No', 'activitytype', 'frammer_id', 'sugartype', 'plotsugar_id',
             'selectdate', 'image', 'created_at', 'updated_at'
         ];
 
@@ -235,11 +239,11 @@ class FactoryActivityController extends Controller
         $d = $D->paginate($length, ['*'], 'page', $page);
 
         if ($d->isNotEmpty()) {
-            $No = (($page - 1) * $length);
+            // $No = (($page - 1) * $length);
 
             foreach ($d as $key => $item) {
-                $No++;
-                $item->No = $No;
+                // $No++;
+                // $item->No = $No;
                 if (isset($item->image)) {
                     $item->image = url($item->image);
                 }
@@ -266,7 +270,7 @@ class FactoryActivityController extends Controller
         $endDate = $request->end_date;
 
         $col = [
-            'id', 'activitytype', 'frammer_id', 'sugartype', 'plotsugar_id',
+            'id', 'No', 'activitytype', 'frammer_id', 'sugartype', 'plotsugar_id',
             'selectdate', 'image', 'created_at', 'updated_at'
         ];
 
@@ -354,11 +358,11 @@ class FactoryActivityController extends Controller
         $d = $D->paginate($length, ['*'], 'page', $page);
 
         if ($d->isNotEmpty()) {
-            $No = (($page - 1) * $length);
+            // $No = (($page - 1) * $length);
 
             foreach ($d as $key => $item) {
-                $No++;
-                $item->No = $No;
+                // $No++;
+                // $item->No = $No;
                 if (isset($item->image)) {
                     $item->image = url($item->image);
                 }
@@ -655,6 +659,7 @@ class FactoryActivityController extends Controller
 
         $data = [
             'id' => $item->id,
+            'No'=> $item->No,
             'activitytype' => $item->activitytype,
             'frammer_id' => $item->frammer_id,
             'sugartype' => $item->sugartype,
@@ -823,73 +828,113 @@ class FactoryActivityController extends Controller
             $Item->sugartype = $Item->sugartype;
             $Item->plotsugar_id = $Item->plotsugar_id;
             $Item->selectdate = $Item->selectdate;
-            if (isset($request->image)) {
-                $Item->image = $request->image;
-            } else {
-                $Item->image = $Item->image;
-            }
 
+            $Item->image = $request->image ?? $Item->image;
+            $date = Carbon::parse($Item->selectdate);
+            $data = [];
             switch ($Item->activitytype) {
                 case '0':
-                    $Item->soilImprovement = $request->soil_improvement;
-                    $Item->plowingtype = $request->plowingtype;
-                    $Item->subtypeplowing = $request->subtypeplowing;
-                    $Item->insecticidecost = $request->insecticidecost;
-                    $Item->equipmentrent = $request->equipmentrent;
-                    $Item->laborwages = $request->laborwages;
-                    $Item->fuelcost = $request->fuelcost;
+                    $Item->soilImprovement = $request->soil_improvement ?? $Item->soilImprovement;
+                    $Item->plowingtype = $request->plowingtype ?? $Item->plowingtype;
+                    $Item->subtypeplowing = $request->subtypeplowing ?? $Item->subtypeplowing;
+                    $Item->insecticidecost = $request->insecticidecost ?? $Item->insecticidecost;
+                    $Item->equipmentrent = $request->equipmentrent ?? $Item->equipmentrent;
+                    $Item->laborwages = $request->laborwages ?? $Item->laborwages;
+                    $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                    $data = array_merge($data, [
+                        "insecticidecost" => $Item->insecticidecost,
+                        "equipmentrent" => $Item->equipmentrent,
+                        "laborwages" => $Item->laborwages,
+                        "fuelcost" => $Item->fuelcost
+                    ]);
                     break;
                 case '1':
-                    $Item->sugarcane = $request->sugarcane;
-                    $Item->plantingsystem = $request->plantingsystem;
-                    $Item->fertilizer = $request->fertilizer;
-                    $Item->expenses = $request->expenses;
-                    $Item->sugartypecost = $request->sugartypecost;
-                    $Item->sugarcaneplantingcost = $request->sugarcaneplantingcost;
-                    $Item->fertilizercost = $request->fertilizercost;
-                    $Item->fuelcost = $request->fuelcost;
+                    $Item->sugarcane = $request->sugarcane ?? $Item->sugarcane;
+                    $Item->plantingsystem = $request->plantingsystem ?? $Item->plantingsystem;
+                    $Item->fertilizer = $request->fertilizer ?? $Item->fertilizer;
+                    $Item->expenses = $request->expenses ?? $Item->expenses;
+                    $Item->sugartypecost = $request->sugartypecost ?? $Item->sugartypecost;
+                    $Item->sugarcaneplantingcost = $request->sugarcaneplantingcost ?? $Item->sugarcaneplantingcost;
+                    $Item->fertilizercost = $request->fertilizercost ?? $Item->fertilizercost;
+                    $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                    $data = array_merge($data, [
+                        "sugartypecost" => $Item->sugartypecost,
+                        "sugarcaneplantingcost" => $Item->sugarcaneplantingcost,
+                        "fertilizercost" => $Item->fertilizercost,
+                        "fuelcost" => $Item->fuelcost
+                    ]);
                     break;
                 case '2':
-                    $Item->wateringsystem = $request->wateringsystem;
-                    $Item->laborwages = $request->laborwages;
-                    $Item->fuelcost = $request->fuelcost;
+                    $Item->wateringsystem = $request->wateringsystem ?? $Item->wateringsystem;
+                    $Item->laborwages = $request->laborwages ?? $Item->laborwages;
+                    $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                    $data = array_merge($data, [
+                        "laborwages" => $Item->laborwages,
+                        "fuelcost" => $Item->fuelcost
+                    ]);
                     break;
                 case '3':
-                    $Item->fertilizerquantity = $request->fertilizerquantity;
-                    $Item->otheringredients = $request->otheringredients;
-                    $Item->amountureafertilizer = $request->amountureafertilizer;
-                    $Item->herbicide = $request->herbicide;
-                    $Item->othertypes = $request->othertypes;
-                    $Item->otheringredientcosts = $request->otheringredientcosts;
-                    $Item->herbicidecost = $request->herbicidecost;
-                    $Item->fertilizer = $request->fertilizer;
-                    $Item->laborwages = $request->laborwages;
-                    $Item->fuelcost = $request->fuelcost;
+                    $Item->fertilizerquantity = $request->fertilizerquantity ?? $Item->fertilizerquantity;
+                    $Item->otheringredients = $request->otheringredients ?? $Item->otheringredients;
+                    $Item->amountureafertilizer = $request->amountureafertilizer ?? $Item->amountureafertilizer;
+                    $Item->herbicide = $request->herbicide ?? $Item->herbicide;
+                    $Item->othertypes = $request->othertypes ?? $Item->othertypes;
+                    $Item->otheringredientcosts = $request->otheringredientcosts ?? $Item->otheringredientcosts;
+                    $Item->herbicidecost = $request->herbicidecost ?? $Item->herbicidecost;
+                    $Item->fertilizer = $request->fertilizer ?? $Item->fertilizer;
+                    $Item->laborwages = $request->laborwages ?? $Item->laborwages;
+                    $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                    $data = array_merge($data, [
+                        "amountureafertilizer" => $Item->amountureafertilizer,
+                        "otheringredientcosts" => $Item->otheringredientcosts,
+                        "herbicidecost" => $Item->herbicidecost,
+                        "fertilizer" => $Item->fertilizer,
+                        "laborwages" => $Item->laborwages,
+                        "fuelcost" => $Item->fuelcost
+                    ]);
                     break;
                 case '4':
-                    $Item->weed = $request->weed;
-                    $Item->plantdiseases = $request->plantdiseases;
-                    $Item->pests = $request->pests;
-                    $Item->pesticidecost = $request->pesticidecost;
-                    $Item->laborwages = $request->laborwages;
-                    $Item->fuelcost = $request->fuelcost;
+                    $Item->weed = $request->weed ?? $Item->weed;
+                    $Item->plantdiseases = $request->plantdiseases ?? $Item->plantdiseases;
+                    $Item->pests = $request->pests ?? $Item->pests;
+                    $Item->pesticidecost = $request->pesticidecost ?? $Item->pesticidecost;
+                    $Item->laborwages = $request->laborwages ?? $Item->laborwages;
+                    $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                    $data = array_merge($data, [
+                        "pesticidecost" => $Item->pesticidecost,
+                        "laborwages" => $Item->laborwages,
+                        "fuelcost" => $Item->fuelcost
+                    ]);
                     break;
                 case '5':
-                    $Item->fertilizertype = $request->fertilizertype;
-                    $Item->fertilizer = $request->fertilizer;
-                    $Item->fertilizerquantity = $request->fertilizerquantity;
-                    $Item->laborwages = $request->laborwages;
-                    $Item->fuelcost = $request->fuelcost;
+                    $Item->fertilizertype = $request->fertilizertype ?? $Item->fertilizertype;
+                    $Item->fertilizer = $request->fertilizer ?? $Item->fertilizer;
+                    $Item->fertilizerquantity = $request->fertilizerquantity ?? $Item->fertilizerquantity;
+                    $Item->laborwages = $request->laborwages ?? $Item->laborwages;
+                    $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                    $data = array_merge($data, [
+                        "fertilizer" => $Item->fertilizer,
+                        "laborwages" => $Item->laborwages,
+                        "fuelcost" => $Item->fuelcost
+                    ]);
                     break;
                 case '6':
-                    $Item->cuttingtype = $request->cuttingtype;
-                    $Item->sugarcanetype = $request->sugarcanetype;
-                    $Item->sugarcanecuttinglabor = $request->sugarcanecuttinglabor;
-                    $Item->fuelcost = $request->fuelcost;
+                    $Item->cuttingtype = $request->cuttingtype ?? $Item->cuttingtype;
+                    $Item->sugarcanetype = $request->sugarcanetype ?? $Item->sugarcanetype;
+                    $Item->sugarcanecuttinglabor = $request->sugarcanecuttinglabor ?? $Item->sugarcanecuttinglabor;
+                    $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                    $data = array_merge($data, [
+                        "sugarcanecuttinglabor" => $Item->sugarcanecuttinglabor,
+                        "fuelcost" => $Item->fuelcost
+                    ]);
                     break;
                 case '7':
-                    $Item->laborwages = $request->laborwages;
-                    $Item->fuelcost = $request->fuelcost;
+                    $Item->laborwages = $request->laborwages ?? $Item->laborwages;
+                    $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                    $data = array_merge($data, [
+                        "laborwages" => $Item->laborwages,
+                        "fuelcost" => $Item->fuelcost
+                    ]);
                     break;
                 default:
                     DB::rollBack();
@@ -899,6 +944,29 @@ class FactoryActivityController extends Controller
 
             $Item->save();
 
+            foreach ($data as $key => $value) {
+                $deductTypeId = $this->getDeductTypeId($key);
+
+                $deduct = DeductPaid::where('factory_activity_id', $Item->id)
+                    ->where('deduct_type_id', $deductTypeId)
+                    ->first();
+
+                if ($deduct) {
+                    $deduct->paid = $value;
+                    $deduct->month = $date->month;
+                    $deduct->year = $date->year;
+                    $deduct->save();
+                } else {
+                    $deduct = new DeductPaid();
+                    $deduct->frammer_id = $Item->frammer_id;
+                    $deduct->factory_activity_id = $Item->id;
+                    $deduct->deduct_type_id = $deductTypeId;
+                    $deduct->paid = $value;
+                    $deduct->month = $date->month;
+                    $deduct->year = $date->year;
+                    $deduct->save();
+                }
+            }
             //
 
             //log
@@ -916,6 +984,40 @@ class FactoryActivityController extends Controller
             DB::rollback();
 
             return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+
+    private function getDeductTypeId($key)
+    {
+        switch ($key) {
+            case 'fuelcost':
+                return 1;
+            case 'laborwages':
+                return 2;
+            case 'fertilizer':
+                return 3;
+            case 'fertilizercost':
+                return 3;
+            case 'pesticidecost':
+                return 4;
+            case 'equipmentrent':
+                return 5;
+            case 'sugartypecost':
+                return 6;
+            case 'sugarcaneplantingcost':
+                return 7;
+            case 'amountureafertilizer':
+                return 8;
+            case 'otheringredientcosts':
+                return 9;
+            case 'herbicidecost':
+                return 10;
+            case 'insecticidecost':
+                return 11;
+            case 'sugarcanecuttinglabor':
+                return 12;
+            default:
+                return 1;
         }
     }
 
