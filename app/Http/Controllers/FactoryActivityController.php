@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 use App\Models\FactoryActivity;
 use App\Models\DeductPaid;
+use DateTime;
 
 class FactoryActivityController extends Controller
 {
@@ -91,17 +92,25 @@ class FactoryActivityController extends Controller
             $query->where('activitytype', $request->activitytype);
         }
 
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
-            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
-            $query->whereBetween('selectdate', [$startDate, $endDate]);
+        if (isset($request->selectdate)) {
+            $query->whereDate('selectdate', '<=', $request->selectdate);
         }
 
         $query->orderBy('plotsugar_id', 'asc');
 
         $maxNo = $query->max('No');
 
-        $nextNo = $maxNo !== null ? $maxNo + 1 : 1;
+        $nextNo = $maxNo !== null ? $maxNo : 0;
+
+        if (isset($request->selectdate)) {
+            $date = new DateTime($request->selectdate);
+            $formattedDate = $date->format('Y-m-d');
+            $exactDateMatch = $query->whereRaw("DATE(selectdate) = ?", [$formattedDate])->exists();
+
+            if (!$exactDateMatch) {
+                $nextNo += 1;
+            }
+        }
 
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $nextNo);
@@ -367,9 +376,38 @@ class FactoryActivityController extends Controller
                     $item->image = url($item->image);
                 }
             }
+
+            $groupedData = [];
+            foreach ($d as $item) {
+                $plotsugarId = $item->plotsugar_id;
+                $selectDate = substr($item->selectdate, 0, 10);
+
+                if (!isset($groupedData[$plotsugarId])) {
+                    $groupedData[$plotsugarId] = [];
+                }
+                if (!isset($groupedData[$plotsugarId][$selectDate])) {
+                    $groupedData[$plotsugarId][$selectDate] = [];
+                }
+                $groupedData[$plotsugarId][$selectDate][] = $item;
+            }
+
+            $formattedData = [];
+            foreach ($groupedData as $plotsugarId => $dates) {
+                $plotData = [
+                    'plotsugar_id' => $plotsugarId,
+                    'dates' => []
+                ];
+                foreach ($dates as $date => $items) {
+                    $plotData['dates'][] = [
+                        'selectdate' => $date,
+                        'items' => $items
+                    ];
+                }
+                $formattedData[] = $plotData;
+            }
         }
 
-        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $d);
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $formattedData);
     }
     /**
      * Display a listing of the resource.
@@ -622,7 +660,9 @@ class FactoryActivityController extends Controller
             }
 
             //
-
+            foreach ($request->plotsugar as $plotsugar_id) {
+                $this->reorderNo($request->frammer_id, $request->sugartype, $request->activitytype, $plotsugar_id);
+            }
             //log
             $userId = "admin";
             $type = 'เพิ่มรายการ';
@@ -641,6 +681,30 @@ class FactoryActivityController extends Controller
         }
     }
 
+    private function reorderNo($frammerId, $sugartype, $activitytype, $plotsugar_id)
+    {
+        $items = FactoryActivity::where('frammer_id', $frammerId)
+            ->where('sugartype', $sugartype)
+            ->where('activitytype', $activitytype)
+            ->where('plotsugar_id', $plotsugar_id)
+            ->orderBy('selectdate')
+            ->get();
+    
+        $currentNo = 0;
+        $currentDate = null;
+    
+        foreach ($items as $item) {
+            $itemDate = Carbon::parse($item->selectdate)->startOfDay();
+            
+            if ($currentDate === null || $itemDate->gt($currentDate)) {
+                $currentNo++;
+                $currentDate = $itemDate;
+            }
+    
+            $item->No = $currentNo;
+            $item->save();
+        }
+    }
     /**
      * Display the specified resource.
      *
@@ -659,7 +723,7 @@ class FactoryActivityController extends Controller
 
         $data = [
             'id' => $item->id,
-            'No'=> $item->No,
+            'No' => $item->No,
             'activitytype' => $item->activitytype,
             'frammer_id' => $item->frammer_id,
             'sugartype' => $item->sugartype,
@@ -822,12 +886,11 @@ class FactoryActivityController extends Controller
             DB::beginTransaction();
 
             $Item =  FactoryActivity::find($id);
-            $Item->No = $Item->No;
             $Item->activitytype = $Item->activitytype;
             $Item->frammer_id = $Item->frammer_id;
             $Item->sugartype = $Item->sugartype;
             $Item->plotsugar_id = $Item->plotsugar_id;
-            $Item->selectdate = $Item->selectdate;
+            $Item->selectdate = $request->selectdate ?? $Item->selectdate;
 
             $Item->image = $request->image ?? $Item->image;
             $date = Carbon::parse($Item->selectdate);
@@ -969,6 +1032,7 @@ class FactoryActivityController extends Controller
             }
             //
 
+            $this->reorderNo($Item->frammer_id, $Item->sugartype, $Item->activitytype, $Item->plotsugar_id);
             //log
             $userId = "admin";
             $type = 'เพิ่มรายการ';

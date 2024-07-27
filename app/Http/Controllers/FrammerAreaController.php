@@ -14,20 +14,29 @@ class FrammerAreaController extends Controller
 {
     public function getList(Request $request)
     {
-        // return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $request->input());
         $data = $request->input();
-        $Item = FrammerArea::where("frammer_id", $data['frammer_id'])
-            ->where("year", $data['year'])
-            ->get()->toArray();
-    
-        if (!empty($Item)) {
-            for ($i = 0; $i < count($Item); $i++) {
-                $Item[$i]['No'] = $i + 1;
+        $query = FrammerArea::where("frammer_id", $data['frammer_id'])
+            ->where("year", $data['year']);
+
+        if (isset($data['sugartype'])) {
+            if ($data['sugartype'] == 'อ้อยปลูกใหม่') {
+                $query->where("sugarcane_age", "<=", 1);
+            } else {
+                $query->where("sugarcane_age", ">", 1);
             }
         }
 
-        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+        $items = $query->get()->toArray();
+
+        if (!empty($items)) {
+            foreach ($items as $index => &$item) {
+                $item['No'] = $index + 1;
+            }
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $items);
     }
+
 
     public function getPage(Request $request)
     {
@@ -116,7 +125,7 @@ class FrammerAreaController extends Controller
     public function store(Request $request)
     {
 
-            DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
             $Item = new FrammerArea();
@@ -138,7 +147,7 @@ class FrammerAreaController extends Controller
             //log
             $userId = "admin";
             $type = 'เพิ่มรายการ';
-            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type ;
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
             $this->Log($userId, $description, $type);
             //
 
