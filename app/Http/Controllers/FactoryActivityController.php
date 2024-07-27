@@ -367,11 +367,8 @@ class FactoryActivityController extends Controller
         $d = $D->paginate($length, ['*'], 'page', $page);
 
         if ($d->isNotEmpty()) {
-            // $No = (($page - 1) * $length);
 
             foreach ($d as $key => $item) {
-                // $No++;
-                // $item->No = $No;
                 if (isset($item->image)) {
                     $item->image = url($item->image);
                 }
@@ -379,35 +376,35 @@ class FactoryActivityController extends Controller
 
             $groupedData = [];
             foreach ($d as $item) {
-                $plotsugarId = $item->plotsugar_id;
-                $selectDate = substr($item->selectdate, 0, 10);
-
-                if (!isset($groupedData[$plotsugarId])) {
-                    $groupedData[$plotsugarId] = [];
-                }
-                if (!isset($groupedData[$plotsugarId][$selectDate])) {
-                    $groupedData[$plotsugarId][$selectDate] = [];
-                }
-                $groupedData[$plotsugarId][$selectDate][] = $item;
-            }
-
-            $formattedData = [];
-            foreach ($groupedData as $plotsugarId => $dates) {
-                $plotData = [
-                    'plotsugar_id' => $plotsugarId,
-                    'dates' => []
-                ];
-                foreach ($dates as $date => $items) {
-                    $plotData['dates'][] = [
-                        'selectdate' => $date,
-                        'items' => $items
+                $key = $item->No . '-' .Carbon::parse($item->selectdate)->format('Y-m-d') . '-' . $item->plotsugar_id . '-' . $item->frammer_id . '-' . $item->sugartype . '-' . $item->activitytype;
+                if (!isset($groupedData[$key])) {
+                    $groupedData[$key] = [
+                        'No' => $item->No,
+                        'activitytype' => $item->activitytype,
+                        'frammer_id' => $item->frammer_id,
+                        'sugartype' => $item->sugartype,
+                        'plotsugar_id' => $item->plotsugar_id,
+                        'selectdate' => $item->selectdate,
+                        'subdata' => []
                     ];
                 }
-                $formattedData[] = $plotData;
+                $groupedData[$key]['subdata'][] = [
+                    'image' => url($item->image),
+                    'created_at' => $item->created_at,
+                    'updated_at' => $item->updated_at,
+                    'soilImprovement' => $item->soilImprovement,
+                    'plowingtype' => $item->plowingtype,
+                    'subtypeplowing' => $item->subtypeplowing,
+                    'insecticidecost' => $item->insecticidecost,
+                    'equipmentrent' => $item->equipmentrent,
+                    'laborwages' => $item->laborwages,
+                    'fuelcost' => $item->fuelcost
+                ];
             }
+
         }
 
-        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $formattedData);
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', array_values($groupedData));
     }
     /**
      * Display a listing of the resource.
