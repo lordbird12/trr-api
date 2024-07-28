@@ -113,7 +113,7 @@ class FactoryActivityController extends Controller
         }
 
 
-        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $nextNo);
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', (int)$nextNo);
     }
 
     public function schedule(Request $request)
@@ -366,6 +366,7 @@ class FactoryActivityController extends Controller
 
         $d = $D->paginate($length, ['*'], 'page', $page);
 
+        $groupedData = [];
         if ($d->isNotEmpty()) {
 
             foreach ($d as $key => $item) {
@@ -374,7 +375,6 @@ class FactoryActivityController extends Controller
                 }
             }
 
-            $groupedData = [];
             foreach ($d as $item) {
                 $key = $item->No . '-' .Carbon::parse($item->selectdate)->format('Y-m-d') . '-' . $item->plotsugar_id . '-' . $item->frammer_id . '-' . $item->sugartype . '-' . $item->activitytype;
                 if (!isset($groupedData[$key])) {
@@ -389,6 +389,7 @@ class FactoryActivityController extends Controller
                     ];
                 }
                 $groupedData[$key]['subdata'][] = [
+                    "id"=> $item->id,
                     'image' => url($item->image),
                     'created_at' => $item->created_at,
                     'updated_at' => $item->updated_at,
@@ -695,7 +696,7 @@ class FactoryActivityController extends Controller
             
             if ($currentDate === null || $itemDate->gt($currentDate)) {
                 $currentNo++;
-                $currentDate = $itemDate;
+                $currentDate = $item->selectdate;
             }
     
             $item->No = $currentNo;
