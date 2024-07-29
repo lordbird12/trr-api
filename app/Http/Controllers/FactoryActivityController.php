@@ -88,8 +88,12 @@ class FactoryActivityController extends Controller
             $query->where('sugartype', $request->sugartype);
         }
 
-        if (isset($request->activitytype)) {
+        if ($request->has('activitytype')) {
             $query->where('activitytype', $request->activitytype);
+        }
+
+        if ($request->has('plotsugar_id')) {
+            $query->where('plotsugar_id', $request->plotsugar_id);
         }
 
         if (isset($request->selectdate)) {
@@ -384,13 +388,14 @@ class FactoryActivityController extends Controller
                         'frammer_id' => $item->frammer_id,
                         'sugartype' => $item->sugartype,
                         'plotsugar_id' => $item->plotsugar_id,
-                        'selectdate' => $item->selectdate,
+                        'selectdate' => Carbon::parse($item->selectdate)->format('Y-m-d'),
                         'subdata' => []
                     ];
                 }
                 $groupedData[$key]['subdata'][] = [
                     "id"=> $item->id,
-                    'image' => url($item->image),
+                    'image' => $item->image,
+                    'fulldate' => $item->selectdate,
                     'created_at' => $item->created_at,
                     'updated_at' => $item->updated_at,
                     'soilImprovement' => $item->soilImprovement,
