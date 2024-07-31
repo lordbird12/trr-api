@@ -22,12 +22,14 @@ class CreateFrammerAreasTable extends Migration
             $table->integer('area')->nullable();
             $table->double('area_size')->nullable();
             $table->integer('sugarcane_age')->nullable();
-            $table->string('sugarcane_type', 200)->unique()->charset('utf8');
+            $table->string('sugarcane_type', 200)->charset('utf8');
             $table->integer('product_per_rai')->nullable();
-            $table->string('measuring_point', 200)->unique()->charset('utf8');
+            $table->string('measuring_point', 200)->charset('utf8');
             $table->integer('distance')->nullable();
             $table->integer('last_year_cumulative_rain')->nullable();
             $table->integer('curr_year_cumulative_rain')->nullable();
+            $table->json('co_or_points');
+            $table->json('center');
             // $table->integer('all_area')->nullable();
             $table->string('create_by', 100)->charset('utf8')->nullable();
             $table->string('update_by', 100)->charset('utf8')->nullable();

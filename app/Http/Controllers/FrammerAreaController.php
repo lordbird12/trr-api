@@ -140,6 +140,8 @@ class FrammerAreaController extends Controller
             $Item->distance = $request->distance;
             $Item->last_year_cumulative_rain = $request->last_year_cumulative_rain;
             $Item->curr_year_cumulative_rain = $request->curr_year_cumulative_rain;
+            $Item->co_or_points = $request->co_or_points;
+            $Item->center = $request->center;
 
             $Item->save();
             //

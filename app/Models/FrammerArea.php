@@ -13,6 +13,10 @@ class FrammerArea extends Model
 
     protected $table = 'frammer_areas';
     protected $softDelete = true;
-
+    
+    protected $casts = [
+        'co_or_points' => 'array',
+        'center' => 'array',
+    ];
     protected $hidden = ['deleted_at'];
 }
