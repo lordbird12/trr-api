@@ -23,7 +23,9 @@ class CreateRainTable extends Migration
             $table->integer('plotsugar_id')->unsigned()->nullable();//ไร่ที่เลือก
             $table->double('last_year_cumulative_rain')->nullable();
             $table->double('curr_year_cumulative_rain')->nullable();
-            $table->string('image', 255)->charset('utf8')->nullable();//รูปภาพ 
+            $table->string('image', 255)->charset('utf8')->nullable();//รูปภาพ
+            $table->json('co_or_points');
+            $table->json('center');
             $table->timestamps();
             $table->softDeletes();
         });

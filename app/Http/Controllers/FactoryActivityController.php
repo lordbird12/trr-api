@@ -401,7 +401,7 @@ class FactoryActivityController extends Controller
                         'subdata' => []
                     ];
                 }
-                $groupedData[$key]['subdata'][] = array_filter([
+                $subdata = [
                     "id" => $item->id,
                     'image' => $item->image,
                     'fulldate' => $item->selectdate,
@@ -437,9 +437,13 @@ class FactoryActivityController extends Controller
                     'sugarcanecuttinglabor' => $item->sugarcanecuttinglabor,
                     'laborwages' => $item->laborwages,
                     'fuelcost' => $item->fuelcost
-                ], function ($value) {
-                    return $value !== null;
-                });
+                ];
+                
+                $filteredSubdata = array_filter($subdata, function ($value, $key) {
+                    return $value !== null || $key === 'image';
+                }, ARRAY_FILTER_USE_BOTH);
+                
+                $groupedData[$key]['subdata'][] = $filteredSubdata;
             }
         }
 

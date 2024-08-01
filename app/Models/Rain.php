@@ -13,6 +13,10 @@ class Rain extends Model
 
     protected $table = 'rain';
     protected $softDelete = true;
+    protected $casts = [
+        'co_or_points' => 'array',
+        'center' => 'array',
+    ];
 
     protected $hidden = ['deleted_at'];
 }

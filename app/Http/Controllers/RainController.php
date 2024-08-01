@@ -61,6 +61,8 @@ class RainController extends Controller
             $Item->last_year_cumulative_rain = $request->last_year_cumulative_rain;
             $Item->curr_year_cumulative_rain = $request->curr_year_cumulative_rain;
             $Item->image = $request->image;
+            $Item->co_or_points = $request->co_or_points;
+            $Item->center = $request->center;
 
             $Item->save();
             //
