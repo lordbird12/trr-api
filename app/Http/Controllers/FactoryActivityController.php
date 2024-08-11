@@ -505,16 +505,18 @@ class FactoryActivityController extends Controller
         try {
             DB::beginTransaction();
             //get sum area size
-            $frammer_area = FrammerArea::whereIn('area', array_map('strval', $request->plotsugar))
-                ->where('frammer_id', $request->frammer_id)
-                ->get();
+            // $frammer_area = FrammerArea::whereIn('area', array_map('strval', $request->plotsugar))
+            //     ->where('frammer_id', $request->frammer_id)
+            //     ->get();
 
-            $total_area_size = $frammer_area->sum('area_size');
-            $areaSizes = $frammer_area->pluck('area_size', 'area')->toArray();
+            $total_area_size = collect($request->areasize)->sum() ?? 0;
+            // dd($total_area_size);
+            $areaSizes = $request->areasize;
+            // dd($areaSizes[0]);
             $date = Carbon::parse($request->selectdate);
             $data = [];
 
-            foreach ($request->plotsugar as $value) {
+            foreach ($request->plotsugar as $index => $value) {
                 $Item = new FactoryActivity();
                 $Item->No = $request->no;
                 $Item->activitytype = $request->activitytype;
@@ -526,7 +528,8 @@ class FactoryActivityController extends Controller
 
                 $Item->image = $request->image;
 
-                $areaSize = $areaSizes[$value] ?? 0;
+                $areaSize = $areaSizes[$index] ?? 0;
+                // dd($areaSize);
                 $areaRatio = round($areaSize / $total_area_size, 2);
 
                 switch ($request->activitytype) {
