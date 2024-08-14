@@ -328,6 +328,7 @@ class FactoryActivityController extends Controller
         $col = [
             'id',
             'No',
+            'trans_id',
             'activitytype',
             'frammer_id',
             'sugartype',
@@ -463,6 +464,7 @@ class FactoryActivityController extends Controller
                 if (!isset($groupedData[$key])) {
                     $groupedData[$key] = [
                         'No' => $item->No,
+                        'trans_id' => $item->trans_id,
                         'activitytype' => $item->activitytype,
                         'frammer_id' => $item->frammer_id,
                         'sugartype' => $item->sugartype,
@@ -578,17 +580,20 @@ class FactoryActivityController extends Controller
             // $frammer_area = FrammerArea::whereIn('area', array_map('strval', $request->plotsugar))
             //     ->where('frammer_id', $request->frammer_id)
             //     ->get();
-
+            $query = FactoryActivity::query();
             $total_area_size = collect($request->areasize)->sum() ?? 0;
             // dd($total_area_size);
             $areaSizes = $request->areasize;
-            // dd($areaSizes[0]);
+            $maxtrans = $query->max('trans_id');
+
+            $nexttrnas = $maxtrans !== null ? $maxtrans + 1 : 1;
             $date = Carbon::parse($request->selectdate);
             $data = [];
 
             foreach ($request->plotsugar as $index => $value) {
                 $Item = new FactoryActivity();
                 $Item->No = $request->no;
+                $Item->trans_id = $nexttrnas;
                 $Item->activitytype = $request->activitytype;
                 $Item->frammer_id = $request->frammer_id;
                 $Item->sugartype = $request->sugartype;
@@ -1008,128 +1013,139 @@ class FactoryActivityController extends Controller
         try {
             DB::beginTransaction();
 
-            $Item =  FactoryActivity::find($id);
-            $Item->activitytype = $Item->activitytype;
-            $Item->frammer_id = $Item->frammer_id;
-            $Item->sugartype = $Item->sugartype;
-            $Item->plotsugar_id = $Item->plotsugar_id;
-            $Item->selectdate = $request->selectdate ?? $Item->selectdate;
+            $items = FactoryActivity::where('trans_id', $request->trans_id)->get();
 
-            $Item->image = $request->image ?? $Item->image;
-            $date = Carbon::parse($Item->selectdate);
+            if ($items->isEmpty()) {
+                return $this->returnErrorData("ไม่พบข้อมูลที่ต้องการอัปเดต", 404);
+            }
+
 
             $total_area_size = collect($request->areasize)->sum() ?? 0;
             // dd($total_area_size);
             $areaSizes = $request->areasize;
 
             $data = [];
-            foreach ($request->plotsugar as $index => $value) {
-
+            foreach ($items as $index => $Item) {
+                $date = Carbon::parse($Item->selectdate);
                 $areaSize = $areaSizes[$index] ?? 0;
-                // dd($areaSize);
                 $areaRatio = round($areaSize / $total_area_size, 2);
-                switch ($Item->activitytype) {
+
+
+                $Item->selectdate = $request->selectdate ?? $Item->selectdate;
+                $Item->image = $request->image ?? $Item->image;
+
+                switch ($request->activitytype) {
                     case '0':
-                        $Item->soilImprovement = $request->soil_improvement ?? $Item->soilImprovement;
-                        $Item->plowingtype = $request->plowingtype ?? $Item->plowingtype;
-                        $Item->subtypeplowing = $request->subtypeplowing ?? $Item->subtypeplowing;
-                        $Item->insecticidecost = $request->insecticidecost ?? $Item->insecticidecost;
-                        $Item->equipmentrent = $request->equipmentrent ?? $Item->equipmentrent;
-                        $Item->laborwages = $request->laborwages ?? $Item->laborwages;
-                        $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                        $Item->soilImprovement = $request->soil_improvement;
+                        $Item->plowingtype = $request->plowingtype;
+                        $Item->subtypeplowing = $request->subtypeplowing;
+                        $Item->insecticidecost = $request->insecticidecost * $areaRatio;
+                        $Item->equipmentrent = $request->equipmentrent * $areaRatio;
+                        $Item->laborwages = $request->laborwages * $areaRatio;
+                        $Item->fuelcost = $request->fuelcost * $areaRatio;
+
                         $data = array_merge($data, [
-                            "insecticidecost" => $Item->insecticidecost * $areaRatio,
-                            "equipmentrent" => $Item->equipmentrent * $areaRatio,
-                            "laborwages" => $Item->laborwages * $areaRatio,
-                            "fuelcost" => $Item->fuelcost* $areaRatio
+                            "insecticidecost" => $request->insecticidecost * $areaRatio,
+                            "equipmentrent" => $request->equipmentrent * $areaRatio,
+                            "laborwages" => $request->laborwages * $areaRatio,
+                            "fuelcost" => $request->fuelcost * $areaRatio
                         ]);
+
                         break;
                     case '1':
-                        $Item->sugarcane = $request->sugarcane ?? $Item->sugarcane;
-                        $Item->plantingsystem = $request->plantingsystem ?? $Item->plantingsystem;
-                        $Item->fertilizer = $request->fertilizer ?? $Item->fertilizer;
-                        $Item->expenses = $request->expenses ?? $Item->expenses;
-                        $Item->sugartypecost = $request->sugartypecost ?? $Item->sugartypecost;
-                        $Item->sugarcaneplantingcost = $request->sugarcaneplantingcost ?? $Item->sugarcaneplantingcost;
-                        $Item->fertilizercost = $request->fertilizercost ?? $Item->fertilizercost;
-                        $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                        $Item->sugarcane = $request->sugarcane;
+                        $Item->plantingsystem = $request->plantingsystem;
+                        $Item->fertilizer = $request->fertilizer;
+                        $Item->expenses = $request->expenses;
+                        $Item->sugartypecost = $request->sugartypecost * $areaRatio;
+                        $Item->sugarcaneplantingcost = $request->sugarcaneplantingcost * $areaRatio;
+                        $Item->fertilizercost = $request->fertilizercost * $areaRatio;
+                        $Item->fuelcost = $request->fuelcost * $areaRatio;
+
                         $data = array_merge($data, [
-                            "sugartypecost" => $Item->sugartypecost * $areaRatio,
-                            "sugarcaneplantingcost" => $Item->sugarcaneplantingcost * $areaRatio,
-                            "fertilizercost" => $Item->fertilizercost * $areaRatio,
-                            "fuelcost" => $Item->fuelcost* $areaRatio
+                            "sugartypecost" => $request->sugartypecost * $areaRatio,
+                            "sugarcaneplantingcost" => $request->sugarcaneplantingcost * $areaRatio,
+                            "fertilizercost" => $request->fertilizercost * $areaRatio,
+                            "fuelcost" => $request->fuelcost * $areaRatio
                         ]);
+
                         break;
                     case '2':
-                        $Item->wateringsystem = $request->wateringsystem ?? $Item->wateringsystem;
-                        $Item->laborwages = $request->laborwages ?? $Item->laborwages;
-                        $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                        $Item->wateringsystem = $request->wateringsystem;
+                        $Item->laborwages = $request->laborwages * $areaRatio;
+                        $Item->fuelcost = $request->fuelcost * $areaRatio;
+
                         $data = array_merge($data, [
-                            "laborwages" => $Item->laborwages * $areaRatio,
-                            "fuelcost" => $Item->fuelcost * $areaRatio
+                            "laborwages" => $request->laborwages * $areaRatio,
+                            "fuelcost" => $request->fuelcost * $areaRatio
                         ]);
                         break;
                     case '3':
-                        $Item->fertilizerquantity = $request->fertilizerquantity ?? $Item->fertilizerquantity;
-                        $Item->otheringredients = $request->otheringredients ?? $Item->otheringredients;
-                        $Item->amountureafertilizer = $request->amountureafertilizer ?? $Item->amountureafertilizer;
-                        $Item->herbicide = $request->herbicide ?? $Item->herbicide;
-                        $Item->othertypes = $request->othertypes ?? $Item->othertypes;
-                        $Item->otheringredientcosts = $request->otheringredientcosts ?? $Item->otheringredientcosts;
-                        $Item->herbicidecost = $request->herbicidecost ?? $Item->herbicidecost;
-                        $Item->fertilizer = $request->fertilizer ?? $Item->fertilizer;
-                        $Item->laborwages = $request->laborwages ?? $Item->laborwages;
-                        $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                        $Item->fertilizerquantity = $request->fertilizerquantity;
+                        $Item->otheringredients = $request->otheringredients;
+                        $Item->amountureafertilizer = $request->amountureafertilizer;
+                        $Item->herbicide = $request->herbicide;
+                        $Item->othertypes = $request->othertypes;
+                        $Item->otheringredientcosts = $request->otheringredientcosts * $areaRatio;
+                        $Item->herbicidecost = $request->herbicidecost * $areaRatio;
+                        $Item->fertilizer = $request->fertilizer;
+                        $Item->laborwages = $request->laborwages * $areaRatio;
+                        $Item->fuelcost = $request->fuelcost * $areaRatio;
+
                         $data = array_merge($data, [
-                            "amountureafertilizer" => $Item->amountureafertilizer * $areaRatio,
-                            "otheringredientcosts" => $Item->otheringredientcosts * $areaRatio,
-                            "herbicidecost" => $Item->herbicidecost * $areaRatio,
-                            "fertilizer" => $Item->fertilizer * $areaRatio,
-                            "laborwages" => $Item->laborwages * $areaRatio,
-                            "fuelcost" => $Item->fuelcost * $areaRatio
+                            "amountureafertilizer" => $request->amountureafertilizer,
+                            "otheringredientcosts" => $request->otheringredientcosts * $areaRatio,
+                            "herbicidecost" => $request->herbicidecost * $areaRatio,
+                            "fertilizer" => $request->fertilizer,
+                            "laborwages" => $request->laborwages * $areaRatio,
+                            "fuelcost" => $request->fuelcost * $areaRatio
                         ]);
                         break;
                     case '4':
-                        $Item->weed = $request->weed ?? $Item->weed;
-                        $Item->plantdiseases = $request->plantdiseases ?? $Item->plantdiseases;
-                        $Item->pests = $request->pests ?? $Item->pests;
-                        $Item->pesticidecost = $request->pesticidecost ?? $Item->pesticidecost;
-                        $Item->laborwages = $request->laborwages ?? $Item->laborwages;
-                        $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                        $Item->weed = $request->weed;
+                        $Item->plantdiseases = $request->plantdiseases;
+                        $Item->pests = $request->pests;
+                        $Item->pesticidecost = $request->pesticidecost * $areaRatio;
+                        $Item->laborwages = $request->laborwages * $areaRatio;
+                        $Item->fuelcost = $request->fuelcost * $areaRatio;
+
                         $data = array_merge($data, [
-                            "pesticidecost" => $Item->pesticidecost * $areaRatio,
-                            "laborwages" => $Item->laborwages * $areaRatio,
-                            "fuelcost" => $Item->fuelcost * $areaRatio
+                            "pesticidecost" => $request->pesticidecost * $areaRatio,
+                            "laborwages" => $request->laborwages * $areaRatio,
+                            "fuelcost" => $request->fuelcost * $areaRatio
                         ]);
                         break;
                     case '5':
-                        $Item->fertilizertype = $request->fertilizertype ?? $Item->fertilizertype;
-                        $Item->fertilizer = $request->fertilizer ?? $Item->fertilizer;
-                        $Item->fertilizerquantity = $request->fertilizerquantity ?? $Item->fertilizerquantity;
-                        $Item->laborwages = $request->laborwages ?? $Item->laborwages;
-                        $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                        $Item->fertilizertype = $request->fertilizertype;
+                        $Item->fertilizer = $request->fertilizer;
+                        $Item->fertilizerquantity = $request->fertilizerquantity;
+                        $Item->laborwages = $request->laborwages * $areaRatio;
+                        $Item->fuelcost = $request->fuelcost * $areaRatio;
+
                         $data = array_merge($data, [
-                            "fertilizer" => $Item->fertilizer * $areaRatio,
-                            "laborwages" => $Item->laborwages * $areaRatio,
-                            "fuelcost" => $Item->fuelcost * $areaRatio
+                            "fertilizer" => $request->fertilizer,
+                            "laborwages" => $request->laborwages * $areaRatio,
+                            "fuelcost" => $request->fuelcost * $areaRatio
                         ]);
                         break;
                     case '6':
-                        $Item->cuttingtype = $request->cuttingtype ?? $Item->cuttingtype;
-                        $Item->sugarcanetype = $request->sugarcanetype ?? $Item->sugarcanetype;
-                        $Item->sugarcanecuttinglabor = $request->sugarcanecuttinglabor ?? $Item->sugarcanecuttinglabor;
-                        $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                        $Item->cuttingtype = $request->cuttingtype;
+                        $Item->sugarcanetype = $request->sugarcanetype;
+                        $Item->sugarcanecuttinglabor = $request->sugarcanecuttinglabor * $areaRatio;
+                        $Item->fuelcost = $request->fuelcost * $areaRatio;
+
                         $data = array_merge($data, [
-                            "sugarcanecuttinglabor" => $Item->sugarcanecuttinglabor * $areaRatio,
-                            "fuelcost" => $Item->fuelcost * $areaRatio
+                            "sugarcanecuttinglabor" => $request->sugarcanecuttinglabor * $areaRatio,
+                            "fuelcost" => $request->fuelcost * $areaRatio
                         ]);
                         break;
                     case '7':
-                        $Item->laborwages = $request->laborwages ?? $Item->laborwages;
-                        $Item->fuelcost = $request->fuelcost ?? $Item->fuelcost;
+                        $Item->laborwages = $request->laborwages * $areaRatio;
+                        $Item->fuelcost = $request->fuelcost * $areaRatio;
+
                         $data = array_merge($data, [
-                            "laborwages" => $Item->laborwages * $areaRatio,
-                            "fuelcost" => $Item->fuelcost * $areaRatio
+                            "laborwages" => $request->laborwages * $areaRatio,
+                            "fuelcost" => $request->fuelcost * $areaRatio
                         ]);
                         break;
                     default:

@@ -15,7 +15,7 @@ class CreateFactoryActivityTable extends Migration
     {
         Schema::create('factory_activity', function (Blueprint $table) {
             $table->increments('id');
-            
+            $table->integer('trans_id')->unsigned()->nullable();//ไอดีเกษตรกร
             //ใช้ร่วมกันทุกตัว
             $table->integer('frammer_id')->unsigned()->nullable();//ไอดีเกษตรกร
             // $table->foreign('frammer_id')->references('id')->on('frammers')->onDelete('cascade');
