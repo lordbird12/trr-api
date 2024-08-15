@@ -604,6 +604,7 @@ class FactoryActivityController extends Controller
                 $Item->image = $request->image;
 
                 $areaSize = $areaSizes[$index] ?? 0;
+                $Item->areasize = $areaSize;
                 // dd($areaSize);
                 $areaRatio = round($areaSize / $total_area_size, 2);
 
@@ -1030,15 +1031,17 @@ class FactoryActivityController extends Controller
                 $areaSize = $areaSizes[$index] ?? 0;
                 $areaRatio = round($areaSize / $total_area_size, 2);
 
-
                 $Item->selectdate = $request->selectdate ?? $Item->selectdate;
                 $Item->image = $request->image ?? $Item->image;
 
                 switch ($request->activitytype) {
                     case '0':
-                        $Item->soilImprovement = $request->soil_improvement;
-                        $Item->plowingtype = $request->plowingtype;
-                        $Item->subtypeplowing = $request->subtypeplowing;
+                        if ($Item->id == $id) {
+                            $Item->soilImprovement = $request->soil_improvement;
+                            $Item->plowingtype = $request->plowingtype;
+                            $Item->subtypeplowing = $request->subtypeplowing;
+                        }
+
                         $Item->insecticidecost = $request->insecticidecost * $areaRatio;
                         $Item->equipmentrent = $request->equipmentrent * $areaRatio;
                         $Item->laborwages = $request->laborwages * $areaRatio;
@@ -1053,10 +1056,13 @@ class FactoryActivityController extends Controller
 
                         break;
                     case '1':
-                        $Item->sugarcane = $request->sugarcane;
-                        $Item->plantingsystem = $request->plantingsystem;
-                        $Item->fertilizer = $request->fertilizer;
-                        $Item->expenses = $request->expenses;
+                        if ($Item->id == $id) {
+                            $Item->sugarcane = $request->sugarcane;
+                            $Item->plantingsystem = $request->plantingsystem;
+                            $Item->fertilizer = $request->fertilizer;
+                            $Item->expenses = $request->expenses;
+                        }
+
                         $Item->sugartypecost = $request->sugartypecost * $areaRatio;
                         $Item->sugarcaneplantingcost = $request->sugarcaneplantingcost * $areaRatio;
                         $Item->fertilizercost = $request->fertilizercost * $areaRatio;
@@ -1071,7 +1077,10 @@ class FactoryActivityController extends Controller
 
                         break;
                     case '2':
-                        $Item->wateringsystem = $request->wateringsystem;
+                        if ($Item->id == $id) {
+                            $Item->wateringsystem = $request->wateringsystem;
+                        }
+
                         $Item->laborwages = $request->laborwages * $areaRatio;
                         $Item->fuelcost = $request->fuelcost * $areaRatio;
 
@@ -1081,11 +1090,14 @@ class FactoryActivityController extends Controller
                         ]);
                         break;
                     case '3':
-                        $Item->fertilizerquantity = $request->fertilizerquantity;
-                        $Item->otheringredients = $request->otheringredients;
-                        $Item->amountureafertilizer = $request->amountureafertilizer;
-                        $Item->herbicide = $request->herbicide;
-                        $Item->othertypes = $request->othertypes;
+                        if ($Item->id == $id) {
+                            $Item->fertilizerquantity = $request->fertilizerquantity;
+                            $Item->otheringredients = $request->otheringredients;
+                            $Item->amountureafertilizer = $request->amountureafertilizer;
+                            $Item->herbicide = $request->herbicide;
+                            $Item->othertypes = $request->othertypes;
+                        }
+
                         $Item->otheringredientcosts = $request->otheringredientcosts * $areaRatio;
                         $Item->herbicidecost = $request->herbicidecost * $areaRatio;
                         $Item->fertilizer = $request->fertilizer;
@@ -1102,9 +1114,11 @@ class FactoryActivityController extends Controller
                         ]);
                         break;
                     case '4':
-                        $Item->weed = $request->weed;
-                        $Item->plantdiseases = $request->plantdiseases;
-                        $Item->pests = $request->pests;
+                        if ($Item->id == $id) {
+                            $Item->weed = $request->weed;
+                            $Item->plantdiseases = $request->plantdiseases;
+                            $Item->pests = $request->pests;
+                        }
                         $Item->pesticidecost = $request->pesticidecost * $areaRatio;
                         $Item->laborwages = $request->laborwages * $areaRatio;
                         $Item->fuelcost = $request->fuelcost * $areaRatio;
@@ -1116,9 +1130,12 @@ class FactoryActivityController extends Controller
                         ]);
                         break;
                     case '5':
-                        $Item->fertilizertype = $request->fertilizertype;
+                        if ($Item->id == $id) {
+                            $Item->fertilizertype = $request->fertilizertype;
+                            $Item->fertilizerquantity = $request->fertilizerquantity;
+                        }
+
                         $Item->fertilizer = $request->fertilizer;
-                        $Item->fertilizerquantity = $request->fertilizerquantity;
                         $Item->laborwages = $request->laborwages * $areaRatio;
                         $Item->fuelcost = $request->fuelcost * $areaRatio;
 
@@ -1129,8 +1146,11 @@ class FactoryActivityController extends Controller
                         ]);
                         break;
                     case '6':
-                        $Item->cuttingtype = $request->cuttingtype;
-                        $Item->sugarcanetype = $request->sugarcanetype;
+                        if ($Item->id == $id) {
+                            $Item->cuttingtype = $request->cuttingtype;
+                            $Item->sugarcanetype = $request->sugarcanetype;
+                        }
+
                         $Item->sugarcanecuttinglabor = $request->sugarcanecuttinglabor * $areaRatio;
                         $Item->fuelcost = $request->fuelcost * $areaRatio;
 
@@ -1248,6 +1268,11 @@ class FactoryActivityController extends Controller
         try {
 
             $Item = FactoryActivity::find($id);
+            $deductItem = DeductPaid::where('factory_activity_id', $Item->id)->get();
+            foreach ($deductItem as $key => $value) {
+                $value->delete();
+            }
+            // return $deductItem;
             $Item->delete();
 
             //log
@@ -1267,4 +1292,182 @@ class FactoryActivityController extends Controller
             return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
         }
     }
+
+    public function newdestroy(Request $request)
+    {
+        DB::beginTransaction();
+    
+        try {
+            $item = FactoryActivity::find($request->id);
+    
+            if (empty($item->trans_id)) {
+                return $this->returnErrorData('ไม่สามารถลบได้', 404);
+            }
+    
+            $fullTrans = FactoryActivity::where('trans_id', $item->trans_id)->get();
+    
+            // Calculate the sum of costs
+            $costSums = [
+                'insecticidecost' => $fullTrans->sum('insecticidecost') ?? 0,
+                'equipmentrent' => $fullTrans->sum('equipmentrent') ?? 0,
+                'fertilizercost' => $fullTrans->sum('fertilizercost') ?? 0,
+                'pesticidecost' => $fullTrans->sum('pesticidecost') ?? 0,
+                'sugartypecost' => $fullTrans->sum('sugartypecost') ?? 0,
+                'sugarcaneplantingcost' => $fullTrans->sum('sugarcaneplantingcost') ?? 0,
+                'amountureafertilizer' => $fullTrans->sum('amountureafertilizer') ?? 0,
+                'otheringredientcosts' => $fullTrans->sum('otheringredientcosts') ?? 0,
+                'herbicidecost' => $fullTrans->sum('herbicidecost') ?? 0,
+                'sugarcanecuttinglabor' => $fullTrans->sum('sugarcanecuttinglabor') ?? 0,
+                'laborwages' => $fullTrans->sum('laborwages') ?? 0,
+                'fuelcost' => $fullTrans->sum('fuelcost') ?? 0,
+            ];
+    
+            DeductPaid::where('factory_activity_id', $item->id)->delete();
+            $transId = $item->trans_id;
+            $item->delete();
+    
+            $remainingItems = FactoryActivity::where('trans_id', $transId)->get();
+    
+            if ($remainingItems->isNotEmpty()) {
+                $totalAreaSize = $remainingItems->sum('areasize');
+                $data = [];
+                foreach ($remainingItems as $remainingItem) {
+                    $areaRatio = $totalAreaSize > 0 ? round($remainingItem->areasize / $totalAreaSize, 2) : 0;
+                    $date = Carbon::parse($remainingItem->selectdate);
+                    switch ($remainingItem->activitytype) {
+                        case '0':
+                            $remainingItem->insecticidecost = round($costSums['insecticidecost'] * $areaRatio, 2);
+                            $remainingItem->equipmentrent = round($costSums['equipmentrent'] * $areaRatio, 2);
+                            $remainingItem->laborwages = round($costSums['laborwages'] * $areaRatio, 2);
+                            $remainingItem->fuelcost = round($costSums['fuelcost'] * $areaRatio, 2);
+                            $data = array_merge($data, [
+                                "insecticidecost" => round($costSums['insecticidecost'] * $areaRatio, 2),
+                                "equipmentrent" => round($costSums['equipmentrent'] * $areaRatio, 2),
+                                "laborwages" => round($costSums['laborwages'] * $areaRatio, 2),
+                                "fuelcost" => round($costSums['fuelcost'] * $areaRatio, 2),
+                            ]);
+                            break;
+                        case '1':
+                            $remainingItem->sugartypecost = round($costSums['sugartypecost'] * $areaRatio, 2);
+                            $remainingItem->sugarcaneplantingcost = round($costSums['sugarcaneplantingcost'] * $areaRatio, 2);
+                            $remainingItem->fertilizercost = round($costSums['fertilizercost'] * $areaRatio, 2);
+                            $remainingItem->fuelcost = round($costSums['fuelcost'] * $areaRatio, 2);
+                            $data = array_merge($data, [
+                                "sugartypecost" => round($costSums['sugartypecost'] * $areaRatio, 2),
+                                "sugarcaneplantingcost" => round($costSums['sugarcaneplantingcost'] * $areaRatio, 2),
+                                "fertilizercost" => round($costSums['fertilizercost'] * $areaRatio, 2),
+                                "fuelcost" => round($costSums['fuelcost'] * $areaRatio, 2)
+                            ]);
+                            break;
+                        case '2':
+                            $remainingItem->laborwages = round($costSums['laborwages'] * $areaRatio, 2);
+                            $remainingItem->fuelcost = round($costSums['fuelcost'] * $areaRatio, 2);
+                            $data = array_merge($data, [
+                                "laborwages" => round($costSums['laborwages'] * $areaRatio, 2),
+                                "fuelcost" => round($costSums['fuelcost'] * $areaRatio, 2),
+                            ]);
+                            break;
+                        case '3':
+                            $remainingItem->amountureafertilizer = round($costSums['amountureafertilizer'] * $areaRatio, 2);
+                            $remainingItem->otheringredientcosts = round($costSums['otheringredientcosts'] * $areaRatio, 2);
+                            $remainingItem->herbicidecost = round($costSums['herbicidecost'] * $areaRatio, 2);
+                            $remainingItem->laborwages = round($costSums['laborwages'] * $areaRatio, 2);
+                            $remainingItem->fuelcost = round($costSums['fuelcost'] * $areaRatio, 2);
+                            $data = array_merge($data, [
+                                "amountureafertilizer" => round($costSums['amountureafertilizer'] * $areaRatio, 2),
+                                "otheringredientcosts" => round($costSums['otheringredientcosts'] * $areaRatio, 2),
+                                "herbicidecost" => round($costSums['herbicidecost'] * $areaRatio, 2),
+                                "laborwages" => round($costSums['laborwages'] * $areaRatio, 2),
+                                "fuelcost" => round($costSums['fuelcost'] * $areaRatio, 2),
+                            ]);
+                            break;
+                        case '4':
+                            $remainingItem->pesticidecost = round($costSums['pesticidecost'] * $areaRatio, 2);
+                            $remainingItem->laborwages = round($costSums['laborwages'] * $areaRatio, 2);
+                            $remainingItem->fuelcost = round($costSums['fuelcost'] * $areaRatio, 2);
+                            $data = array_merge($data, [
+                                "pesticidecost" => round($costSums['pesticidecost'] * $areaRatio, 2),
+                                "laborwages" => round($costSums['laborwages'] * $areaRatio, 2),
+                                "fuelcost" => round($costSums['fuelcost'] * $areaRatio, 2),
+                            ]);
+                            break;
+                        case '5':
+                            $remainingItem->laborwages = round($costSums['laborwages'] * $areaRatio, 2);
+                            $remainingItem->fuelcost = round($costSums['fuelcost'] * $areaRatio, 2);
+                            $data = array_merge($data, [
+                                "laborwages" => round($costSums['laborwages'] * $areaRatio, 2),
+                                "fuelcost" => round($costSums['fuelcost'] * $areaRatio, 2),
+                            ]);
+                            break;
+                        case '6':
+                            $remainingItem->sugarcanecuttinglabor = round($costSums['sugarcanecuttinglabor'] * $areaRatio, 2);
+                            $remainingItem->fuelcost = round($costSums['fuelcost'] * $areaRatio, 2);
+                            $data = array_merge($data, [
+                                "sugarcanecuttinglabor" => round($costSums['sugarcanecuttinglabor'] * $areaRatio, 2),
+                                "fuelcost" => round($costSums['fuelcost'] * $areaRatio, 2),
+                            ]);
+                            break;
+                        case '7':
+                            $remainingItem->laborwages = round($costSums['laborwages'] * $areaRatio, 2);
+                            $remainingItem->fuelcost = round($costSums['fuelcost'] * $areaRatio, 2);
+                            $data = array_merge($data, [
+                                "laborwages" => round($costSums['laborwages'] * $areaRatio, 2),
+                                "fuelcost" => round($costSums['fuelcost'] * $areaRatio, 2),
+                            ]);
+                            break;
+                        default:
+                            DB::rollBack();
+                            return $this->returnErrorData("เกิดข้อผิดพลาด", 422);
+                    }
+    
+                    $remainingItem->save();
+                    foreach ($data as $key => $value) {
+                        $deductTypeId = $this->getDeductTypeId($key);
+    
+                        $deduct = DeductPaid::where('factory_activity_id', $remainingItem->id)
+                            ->where('deduct_type_id', $deductTypeId)
+                            ->first();
+    
+                        if ($deduct) {
+                            $deduct->paid = $value;
+                            $deduct->month = $date->month;
+                            $deduct->year = $date->year;
+                            $deduct->save();
+                        } else {
+                            $deduct = new DeductPaid();
+                            $deduct->frammer_id = $remainingItem->frammer_id;
+                            $deduct->factory_activity_id = $remainingItem->id;
+                            $deduct->deduct_type_id = $deductTypeId;
+                            $deduct->paid = $value;
+                            $deduct->month = $date->month;
+                            $deduct->year = $date->year;
+                            $deduct->save();
+                        }
+                    }
+                }
+    
+                // Reorder remaining items
+                $this->reorderNo(
+                    $remainingItems->first()->frammer_id,
+                    $remainingItems->first()->sugartype,
+                    $remainingItems->first()->activitytype,
+                    $remainingItems->first()->plotsugar_id
+                );
+            }
+    
+            // Log the operation
+            $userId = "admin";
+            $type = 'ลบผู้ใช้งาน';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $this->Log($userId, $description, $type);
+    
+            DB::commit();
+    
+            return $this->returnUpdate('ดำเนินการสำเร็จ');
+        } catch (\Throwable $e) {
+            DB::rollback();
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+    
 }

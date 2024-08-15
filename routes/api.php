@@ -180,6 +180,7 @@ Route::post('/get_summaryactivity', [FactoryActivityController::class, 'summaryA
 Route::post('/factoryactivity_page_mobile', [FactoryActivityController::class, 'getPagemobile']);
 Route::post('/factoryactivity_schedule', [FactoryActivityController::class, 'schedule']);
 Route::post('/check_no', [FactoryActivityController::class, 'check_no']);
+Route::post('/new_delete', [FactoryActivityController::class, 'newdestroy']);
 
 // Rain
 Route::resource('rain', RainController::class);

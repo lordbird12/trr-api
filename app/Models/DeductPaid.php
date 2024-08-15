@@ -14,7 +14,11 @@ class DeductPaid extends Model
 
     protected $table = 'deduct_paids';
     protected $softDelete = true;
-
+    protected $fillable = [
+        // other attributes...
+        'frammer_id',
+        // other attributes...
+    ];
     protected $hidden = ['deleted_at'];
 
     public function deduct_types()

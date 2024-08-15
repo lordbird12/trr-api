@@ -18,6 +18,7 @@ class CreateFactoryActivityTable extends Migration
             $table->integer('trans_id')->unsigned()->nullable();//ไอดีเกษตรกร
             //ใช้ร่วมกันทุกตัว
             $table->integer('frammer_id')->unsigned()->nullable();//ไอดีเกษตรกร
+            $table->double('areasize')->nullable();//ค่าจ้างแรงงาน
             // $table->foreign('frammer_id')->references('id')->on('frammers')->onDelete('cascade');
             $table->string('sugartype');//ประเภทน้ำตาล
             $table->integer('plotsugar_id')->unsigned()->nullable();//ไร่ที่เลือก
