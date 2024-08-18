@@ -778,7 +778,7 @@ class FactoryActivityController extends Controller
                             $deduct->deduct_type_id = 1; // Default value if no match is found
                             break;
                     }
-                    $deduct->paid = $value;
+                    $deduct->paid = $value ?? 0;
                     $deduct->month = $date->month;
                     $deduct->year = $date->year;
                     // dd($deduct->all());
@@ -1067,7 +1067,7 @@ class FactoryActivityController extends Controller
                         "sugartypecost" => $request->sugartypecost,
                         "sugarcaneplantingcost" => $request->sugarcaneplantingcost ,
                         "fertilizercost" => $request->fertilizercost ,
-                        "fuelcost" => $request->fuelcost 
+                        "fuelcost" => $request->fuelcost
                     ]);
 
                     break;
@@ -1081,7 +1081,7 @@ class FactoryActivityController extends Controller
 
                     $data = array_merge($data, [
                         "laborwages" => $request->laborwages ,
-                        "fuelcost" => $request->fuelcost 
+                        "fuelcost" => $request->fuelcost
                     ]);
                     break;
                 case '3':
@@ -1179,7 +1179,7 @@ class FactoryActivityController extends Controller
                     ->first();
 
                 if ($deduct) {
-                    $deduct->paid = $value;
+                    $deduct->paid = $value ?? 0;
                     $deduct->month = $date->month;
                     $deduct->year = $date->year;
                     $deduct->save();
@@ -1188,7 +1188,7 @@ class FactoryActivityController extends Controller
                     $deduct->frammer_id = $Item->frammer_id;
                     $deduct->factory_activity_id = $Item->id;
                     $deduct->deduct_type_id = $deductTypeId;
-                    $deduct->paid = $value;
+                    $deduct->paid = $value ?? 0;
                     $deduct->month = $date->month;
                     $deduct->year = $date->year;
                     $deduct->save();
@@ -1216,8 +1216,10 @@ class FactoryActivityController extends Controller
             $areaSizes = $request->areasize;
 
             $updatedata = $items->filter(function ($item) use ($id) {
-                return $item->id !== $id;
+                return $item->id !== (int)$id;
             });
+
+            // return $updatedata;
             $data = [];
             foreach ($updatedata as $index => $rest) {
                 $date = Carbon::parse($rest->selectdate);
@@ -1383,7 +1385,7 @@ class FactoryActivityController extends Controller
                         $deduct->frammer_id = $rest->frammer_id;
                         $deduct->factory_activity_id = $rest->id;
                         $deduct->deduct_type_id = $deductTypeId;
-                        $deduct->paid = $value;
+                        $deduct->paid = $value ?? 0;
                         $deduct->month = $date->month;
                         $deduct->year = $date->year;
                         $deduct->save();
@@ -1619,7 +1621,7 @@ class FactoryActivityController extends Controller
                             ->first();
     
                         if ($deduct) {
-                            $deduct->paid = $value;
+                            $deduct->paid = $value ?? 0;
                             $deduct->month = $date->month;
                             $deduct->year = $date->year;
                             $deduct->save();
@@ -1628,7 +1630,7 @@ class FactoryActivityController extends Controller
                             $deduct->frammer_id = $remainingItem->frammer_id;
                             $deduct->factory_activity_id = $remainingItem->id;
                             $deduct->deduct_type_id = $deductTypeId;
-                            $deduct->paid = $value;
+                            $deduct->paid = $value ?? 0;
                             $deduct->month = $date->month;
                             $deduct->year = $date->year;
                             $deduct->save();
