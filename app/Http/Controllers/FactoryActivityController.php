@@ -1029,6 +1029,21 @@ class FactoryActivityController extends Controller
             $Item->selectdate = $request->selectdate ?? $Item->selectdate;
             $Item->image = $request->image ?? $Item->image;
 
+            //create key
+            $insecticidecostkey = ((int)$Item->insecticidecost == (int)$request->insecticidecost) ? true : false;
+            $equipmentrentkey = ((int)$Item->equipmentrent == (int)$request->equipmentrent) ? true : false;
+            $sugartypecostkey = ((int)$Item->sugartypecost == (int)$request->sugartypecost) ? true : false;
+            $sugarcaneplantingcostkey = ((int)$Item->sugarcaneplantingcost == (int)$request->sugarcaneplantingcost) ? true : false;
+            $fertilizercostkey = ((int)$Item->fertilizercost == (int)$request->fertilizercost) ? true : false;
+            $otheringredientcostskey = ((int)$Item->otheringredientcosts == (int)$request->otheringredientcosts) ? true : false;
+            $herbicidecostkey = ((int)$Item->herbicidecost == (int)$request->herbicidecost) ? true : false;
+            $pesticidecostkey = ((int)$Item->pesticidecost == (int)$request->pesticidecost) ? true : false;
+            $sugarcanetypekey = ((int)$Item->sugarcanetype == (int)$request->sugarcanetype) ? true : false;
+            $sugarcanecuttinglaborkey = ((int)$Item->sugarcanecuttinglabor == (int)$request->sugarcanecuttinglabor) ? true : false;
+            $laborwageskey = ((int)$Item->laborwages == (int)$request->laborwages) ? true : false;
+            $fuelcostkey = ((int)$Item->fuelcost == (int)$request->fuelcost) ? true : false;
+
+
             switch ($request->activitytype) {
                 case '0':
                     if ($Item->id == $id) {
@@ -1100,7 +1115,6 @@ class FactoryActivityController extends Controller
                     $Item->fuelcost = $request->fuelcost ;
 
                     $data = array_merge($data, [
-                        "amountureafertilizer" => $request->amountureafertilizer,
                         "otheringredientcosts" => $request->otheringredientcosts ,
                         "herbicidecost" => $request->herbicidecost ,
                         "fertilizer" => $request->fertilizer,
@@ -1219,7 +1233,7 @@ class FactoryActivityController extends Controller
                 return $item->id !== (int)$id;
             });
 
-            // return $updatedata;
+            //recalculate the cost of other activities in same trans_id
             $data = [];
             foreach ($updatedata as $index => $rest) {
                 $date = Carbon::parse($rest->selectdate);
@@ -1234,16 +1248,16 @@ class FactoryActivityController extends Controller
                             $rest->subtypeplowing = $request->subtypeplowing;
                         }
 
-                        $rest->insecticidecost = round($afterupdate['insecticidecost'] * $areaRatio, 2);
-                        $rest->equipmentrent = round($afterupdate['equipmentrent'] * $areaRatio, 2);
-                        $rest->laborwages = round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost = round($afterupdate['fuelcost'] * $areaRatio, 2);
+                        $rest->insecticidecost = ($insecticidecostkey)? $rest->insecticidecost : round($afterupdate['insecticidecost'] * $areaRatio, 2);
+                        $rest->equipmentrent = ($equipmentrentkey)? $rest->equipmentrent : round($afterupdate['equipmentrent'] * $areaRatio, 2);
+                        $rest->laborwages =  ($laborwageskey)? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->fuelcost =  ($fuelcostkey)? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
-                            "insecticidecost" => round($afterupdate['insecticidecost'] * $areaRatio, 2),
-                            "equipmentrent" => round($afterupdate['equipmentrent'] * $areaRatio, 2),
-                            "laborwages" => round($afterupdate['laborwages'] * $areaRatio, 2),
-                            "fuelcost" => round($afterupdate['fuelcost'] * $areaRatio, 2)
+                            "insecticidecost" => ($insecticidecostkey)? $rest->insecticidecost: round($afterupdate['insecticidecost'] * $areaRatio, 2),
+                            "equipmentrent" => ($equipmentrentkey)? $rest->equipmentrent :round($afterupdate['equipmentrent'] * $areaRatio, 2),
+                            "laborwages" => ($laborwageskey)? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey)? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
 
                         break;
@@ -1255,16 +1269,16 @@ class FactoryActivityController extends Controller
                             $rest->expenses = $request->expenses;
                         }
 
-                        $rest->sugartypecost = round($afterupdate['sugartypecost'] * $areaRatio, 2);
-                        $rest->sugarcaneplantingcost = $afterupdate['sugarcaneplantingcost'] * $areaRatio;
-                        $rest->fertilizercost = $afterupdate['fertilizercost'] * $areaRatio;
-                        $rest->fuelcost = $afterupdate['fuelcost'] * $areaRatio;
+                        $rest->sugartypecost = ($sugartypecostkey) ? $rest->sugartypecost :round($afterupdate['sugartypecost'] * $areaRatio, 2);
+                        $rest->sugarcaneplantingcost =  ($sugarcaneplantingcostkey) ? $rest->sugarcaneplantingcost :round($afterupdate['sugarcaneplantingcost'] * $areaRatio,2);
+                        $rest->fertilizercost =  ($fertilizercostkey) ? $rest->fertilizercost :round($afterupdate['fertilizercost'] * $areaRatio, 2);
+                        $rest->fuelcost =  ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
-                            "sugartypecost" => round($afterupdate['sugartypecost'] * $areaRatio, 2),
-                            "sugarcaneplantingcost" => $afterupdate['sugarcaneplantingcost'] * $areaRatio,
-                            "fertilizercost" => $afterupdate['fertilizercost'] * $areaRatio,
-                            "fuelcost" => $afterupdate['fuelcost'] * $areaRatio
+                            "sugartypecost" => ($sugartypecostkey) ? $rest->sugartypecost :round($afterupdate['sugartypecost'] * $areaRatio, 2),
+                            "sugarcaneplantingcost" => ($sugarcaneplantingcostkey) ? $rest->sugarcaneplantingcost :round($afterupdate['sugarcaneplantingcost'] * $areaRatio,2),
+                            "fertilizercost" => ($fertilizercostkey) ? $rest->fertilizercost :round($afterupdate['fertilizercost'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
 
                         break;
@@ -1273,12 +1287,12 @@ class FactoryActivityController extends Controller
                             $rest->wateringsystem = $request->wateringsystem;
                         }
 
-                        $rest->laborwages = round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost = round($afterupdate['fuelcost'] * $areaRatio, 2);
+                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
-                            "laborwages" => round($afterupdate['laborwages'] * $areaRatio, 2),
-                            "fuelcost" => round($afterupdate['fuelcost']* $areaRatio, 2)
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost']* $areaRatio, 2)
                         ]);
                         break;
                     case '3':
@@ -1290,19 +1304,18 @@ class FactoryActivityController extends Controller
                             $rest->othertypes = $request->othertypes;
                         }
 
-                        $rest->otheringredientcosts = round($afterupdate['otheringredientcosts'] * $areaRatio, 2);
-                        $rest->herbicidecost = round($afterupdate['herbicidecost'] * $areaRatio, 2);
+                        $rest->otheringredientcosts = ($otheringredientcostskey) ? $rest->otheringredientcosts :round($afterupdate['otheringredientcosts'] * $areaRatio, 2);
+                        $rest->herbicidecost = ($otheringredientcostskey) ? $rest->herbicidecost :round($afterupdate['herbicidecost'] * $areaRatio, 2);
                         // $rest->fertilizer = round($afterupdate['fertilizer'] * $areaRatio, 2);
-                        $rest->laborwages = round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost = round($afterupdate['fuelcost'] * $areaRatio, 2);
+                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
-                            "amountureafertilizer" => round($afterupdate['amountureafertilizer'] * $areaRatio, 2),
-                            "otheringredientcosts" => round($afterupdate['otheringredientcosts'] * $areaRatio, 2),
-                            "herbicidecost" => round($afterupdate['herbicidecost'] * $areaRatio, 2),
+                            "otheringredientcosts" => ($otheringredientcostskey) ? $rest->otheringredientcosts :round($afterupdate['otheringredientcosts'] * $areaRatio, 2),
+                            "herbicidecost" => ($herbicidecostkey) ? $rest->herbicidecost :round($afterupdate['herbicidecost'] * $areaRatio, 2),
                             // "fertilizer" => round($afterupdate['fertilizer'] * $areaRatio, 2),
-                            "laborwages" => round($afterupdate['laborwages'] * $areaRatio, 2),
-                            "fuelcost" => round($afterupdate['fuelcost'] * $areaRatio, 2)
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
                         break;
                     case '4':
@@ -1311,14 +1324,14 @@ class FactoryActivityController extends Controller
                             $rest->plantdiseases = $request->plantdiseases;
                             $rest->pests = $request->pests;
                         }
-                        $rest->pesticidecost = round($afterupdate['pesticidecost'] * $areaRatio, 2);
-                        $rest->laborwages = round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost = round($afterupdate['fuelcost'] * $areaRatio, 2);
+                        $rest->pesticidecost = ($pesticidecostkey) ? $rest->pesticidecost :round($afterupdate['pesticidecost'] * $areaRatio, 2);
+                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
-                            "pesticidecost" => round($afterupdate['pesticidecost'] * $areaRatio, 2),
-                            "laborwages" => round($afterupdate['laborwages'] * $areaRatio, 2),
-                            "fuelcost" => round($afterupdate['fuelcost'] * $areaRatio, 2)
+                            "pesticidecost" => ($pesticidecostkey) ? $rest->pesticidecost :round($afterupdate['pesticidecost'] * $areaRatio, 2),
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
                         break;
                     case '5':
@@ -1328,13 +1341,13 @@ class FactoryActivityController extends Controller
                         }
 
                         // $rest->fertilizer = round($request->fertilizer * $areaRatio, 2);
-                        $rest->laborwages = round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost = round($afterupdate['fuelcost'] * $areaRatio, 2);
+                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
                             // "fertilizer" => round($request->fertilizer * $areaRatio, 2),
-                            "laborwages" => round($afterupdate['laborwages'] * $areaRatio, 2),
-                            "fuelcost" => round($afterupdate['fuelcost'] * $areaRatio, 2)
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
                         break;
                     case '6':
@@ -1343,8 +1356,8 @@ class FactoryActivityController extends Controller
                             $rest->sugarcanetype = $request->sugarcanetype;
                         }
 
-                        $rest->sugarcanecuttinglabor = round($afterupdate['sugarcanecuttinglabor'] * $areaRatio, 2);
-                        $rest->fuelcost = round($afterupdate['fuelcost']* $areaRatio, 2);
+                        $rest->sugarcanecuttinglabor = ($sugarcanecuttinglaborkey) ? $rest->sugarcanecuttinglabor :round($afterupdate['sugarcanecuttinglabor'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost']* $areaRatio, 2);
 
                         $data = array_merge($data, [
                             "sugarcanecuttinglabor" => round($afterupdate['sugarcanecuttinglabor'] * $areaRatio, 2),
@@ -1352,12 +1365,12 @@ class FactoryActivityController extends Controller
                         ]);
                         break;
                     case '7':
-                        $rest->laborwages = round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost = round($afterupdate['fuelcost'] * $areaRatio);
+                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio);
 
                         $data = array_merge($data, [
-                            "laborwages" => round($afterupdate['laborwages']  * $areaRatio),
-                            "fuelcost" => round($afterupdate['fuelcost']  * $areaRatio)
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages']  * $areaRatio),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost']  * $areaRatio)
                         ]);
                         break;
                     default:
