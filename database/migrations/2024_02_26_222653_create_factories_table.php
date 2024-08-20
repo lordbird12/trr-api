@@ -19,6 +19,8 @@ class CreateFactoriesTable extends Migration
             $table->string('code', 200)->unique()->charset('utf8');
             $table->string('name', 200)->unique()->charset('utf8');
             $table->text('address')->charset('utf8')->nullable();
+            $table->string('phone', 100)->charset('utf8')->nullable();
+            $table->string('email', 100)->charset('utf8')->nullable();
 
             $table->string('lat', 100)->charset('utf8')->nullable();
             $table->string('lon', 100)->charset('utf8')->nullable();

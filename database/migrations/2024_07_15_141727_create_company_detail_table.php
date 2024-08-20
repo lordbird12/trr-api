@@ -16,9 +16,6 @@ class CreateCompanyDetailTable extends Migration
         Schema::create('company_detail', function (Blueprint $table) {
             $table->increments('id');
 
-            $table->integer('factory_id')->unsigned()->nullable();//ไอดีบริษัท
-
-            $table->string('factory_affiliation')->nullable();//สังกัดโรงงาน
             $table->string('head_office')->nullable();//สังกัดโรงงาน
             $table->string('phone', 100)->charset('utf8');//เบอร์
             $table->string('email', 100)->charset('utf8');//email
@@ -26,10 +23,16 @@ class CreateCompanyDetailTable extends Migration
             $table->string('date_start', 100)->charset('utf8');//date
             $table->string('time_end', 100)->charset('utf8');//time
             $table->string('date_end', 100)->charset('utf8');//date
-            $table->string('youtube', 100)->charset('utf8');//youtube
-            $table->string('facebook', 100)->charset('utf8');//facebook
-            $table->string('tiktok', 100)->charset('utf8');//tiktok
-            $table->string('website', 100)->charset('utf8');//website
+            $table->string('link1', 100)->charset('utf8');//youtube
+            $table->string('link2', 100)->charset('utf8');//facebook
+            $table->string('link3', 100)->charset('utf8');//tiktok
+            $table->string('link4', 100)->charset('utf8');//website
+            $table->string('link5', 100)->charset('utf8');//website
+            $table->string('image1', 255)->charset('utf8')->nullable();//รูปภาพ
+            $table->string('image2', 255)->charset('utf8')->nullable();//รูปภาพ
+            $table->string('image3', 255)->charset('utf8')->nullable();//รูปภาพ
+            $table->string('image4', 255)->charset('utf8')->nullable();//รูปภาพ
+            $table->string('image5', 255)->charset('utf8')->nullable();//รูปภาพ
             $table->timestamps();
             $table->softDeletes();
         });

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\CompanyDetail;
+use App\Models\Factory;
 
 class CompanyDetailController extends Controller
 {
@@ -45,8 +46,7 @@ class CompanyDetailController extends Controller
 
         try {
             $Item = new CompanyDetail();
-            $Item->factory_id = $request->factory_id;
-            $Item->factory_affiliation = $request->factory_affiliation;
+
             $Item->head_office = $request->head_office;
             $Item->phone = $request->phone;
             $Item->email = $request->email;
@@ -54,10 +54,16 @@ class CompanyDetailController extends Controller
             $Item->date_start = $request->date_start;
             $Item->time_end = $request->time_end;
             $Item->date_end = $request->date_end;
-            $Item->youtube = $request->youtube;
-            $Item->facebook = $request->facebook;
-            $Item->tiktok = $request->tiktok;
-            $Item->website = $request->website;
+            $Item->link1 = $request->link1;
+            $Item->link2 = $request->link2;
+            $Item->link3 = $request->link3;
+            $Item->link4 = $request->link4;
+            $Item->link5 = $request->link5;
+            $Item->image1 = $request->image1;
+            $Item->image2 = $request->image2;
+            $Item->image3 = $request->image3;
+            $Item->image4 = $request->image4;
+            $Item->image5 = $request->image5;
 
             $Item->save();
             //
@@ -98,9 +104,10 @@ class CompanyDetailController extends Controller
     {
         // dd($request->all());
         $id = $request->factory_id;
-        $Item = CompanyDetail::where('factory_id', $id)->first();
+        $data = CompanyDetail::first();
+        $data->factory = Factory::where('id', $id)->first();
 
-        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
     }
     /**
      * Show the form for editing the specified resource.
@@ -126,8 +133,7 @@ class CompanyDetailController extends Controller
 
         try {
             $Item = CompanyDetail::find($id);
-            $Item->factory_id = $request->factory_id;
-            $Item->factory_affiliation = $request->factory_affiliation;
+
             $Item->head_office = $request->head_office;
             $Item->phone = $request->phone;
             $Item->email = $request->email;
@@ -135,10 +141,16 @@ class CompanyDetailController extends Controller
             $Item->date_start = $request->date_start;
             $Item->time_end = $request->time_end;
             $Item->date_end = $request->date_end;
-            $Item->youtube = $request->youtube;
-            $Item->facebook = $request->facebook;
-            $Item->tiktok = $request->tiktok;
-            $Item->website = $request->website;
+            $Item->link1 = $request->link1;
+            $Item->link2 = $request->link2;
+            $Item->link3 = $request->link3;
+            $Item->link4 = $request->link4;
+            $Item->link5 = $request->link5;
+            $Item->image1 = $request->image1;
+            $Item->image2 = $request->image2;
+            $Item->image3 = $request->image3;
+            $Item->image4 = $request->image4;
+            $Item->image5 = $request->image5;
 
             $Item->save();
             //

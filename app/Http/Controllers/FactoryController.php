@@ -36,7 +36,7 @@ class FactoryController extends Controller
 
         $Status = $request->status;
 
-        $col = array('id', 'code', 'name', 'address', 'lat', 'lon', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
+        $col = array('id', 'code', 'name', 'address','email','phone', 'lat', 'lon', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
 
         $orderby = array('', 'code', 'name', 'address', 'lat', 'lon', 'status', 'create_by');
 
@@ -125,6 +125,8 @@ class FactoryController extends Controller
             $Item->code = $id;
             $Item->name = $request->name;
             $Item->address = $request->address;
+            $Item->phone = $request->phone;
+            $Item->email = $request->email;
             $Item->lat = $request->lat;
             $Item->lon = $request->lon;
 
@@ -181,9 +183,42 @@ class FactoryController extends Controller
      * @param  \App\Models\Factory  $factory
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Factory $factory)
+    public function update(Request $request, $id)
     {
-        //
+        $loginBy = $request->login_by;
+
+        // return $request->all();
+            DB::beginTransaction();
+
+        try {
+            $Item = Factory::find($id);
+            $Item->name = $request->name;
+            $Item->address = $request->address;
+            $Item->phone = $request->phone;
+            $Item->email = $request->email;
+            $Item->lat = $request->lat;
+            $Item->lon = $request->lon;
+
+
+            $Item->save();
+            //
+
+            //log
+            $userId = "admin";
+            $type = 'เพิ่มรายการ';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $Item->name;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
     }
 
     /**
