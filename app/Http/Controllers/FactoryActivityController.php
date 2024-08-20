@@ -69,6 +69,49 @@ class FactoryActivityController extends Controller
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $items);
     }
 
+    public function savesummaryActivity(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $query = FactoryActivity::query();
+
+            if ($request->has('frammer_id')) {
+                $query->where('frammer_id', $request->frammer_id);
+            }
+
+            if ($request->has('sugartype')) {
+                $query->where('sugartype', $request->sugartype);
+            }
+
+            // if (isset($request->activitytype)) {
+            //     $query->where('activitytype', $request->activitytype);
+            // }
+
+            if (!empty($request->plotsugar_id) && is_array($request->plotsugar_id)) {
+                $query->whereIn('plotsugar_id', array_map('strval', $request->plotsugar_id));
+            } elseif (isset($request->plotsugar_id)) {
+                $query->where('plotsugar_id', $request->plotsugar_id);
+            }
+
+            if ($request->has('start_date') && $request->has('end_date')) {
+                $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
+                $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+                $query->whereBetween('selectdate', [$startDate, $endDate]);
+            }
+            $items = $query->orderBy('plotsugar_id', 'asc')->get();
+
+            foreach ($items as $key => $item) {
+                $item->status = "done";
+                $item->save();
+            }
+            DB::commit();
+            return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $items);
+        } catch (\Throwable $e) {
+            DB::rollback();
+            return $this->returnError('เกิดข้อผิดพลาด', $e->getMessage());
+        }
+    }
+
     public function getList($id)
     {
         $Item = FactoryActivity::where('province_code', $id)->get();
@@ -181,7 +224,8 @@ class FactoryActivityController extends Controller
             'selectdate',
             'image',
             'created_at',
-            'updated_at'
+            'updated_at',
+            'status'
         ];
 
         switch ($activityType) {
@@ -336,7 +380,8 @@ class FactoryActivityController extends Controller
             'selectdate',
             'image',
             'created_at',
-            'updated_at'
+            'updated_at',
+            'status'
         ];
 
         switch ($activityType) {
@@ -350,7 +395,7 @@ class FactoryActivityController extends Controller
                 $col = array_merge($col, ['wateringsystem', 'laborwages', 'fuelcost']);
                 break;
             case '3':
-                $col = array_merge($col, ['fertilizerquantity', 'otheringredients', 'amountureafertilizer', 'herbicide', 'othertypes', 'otheringredientcosts', 'herbicidecost', 'fertilizer', 'laborwages', 'fuelcost']);
+                $col = array_merge($col, ['fertilizerquantity', 'fertilizer_formula', 'otheringredients', 'amountureafertilizer', 'herbicide', 'othertypes', 'otheringredientcosts', 'herbicidecost', 'fertilizer', 'laborwages', 'fuelcost']);
                 break;
             case '4':
                 $col = array_merge($col, ['weed', 'plantdiseases', 'pests', 'pesticidecost', 'laborwages', 'fuelcost']);
@@ -362,7 +407,7 @@ class FactoryActivityController extends Controller
                 $col = array_merge($col, ['cuttingtype', 'sugarcanetype', 'sugarcanecuttinglabor', 'fuelcost']);
                 break;
             case '7':
-                $col = array_merge($col, ['laborwages', 'fuelcost']);
+                $col = array_merge($col, ['sugarcane_truck_type', 'laborwages', 'fuelcost']);
                 break;
             default:
                 $col = array_merge($col, [
@@ -384,6 +429,7 @@ class FactoryActivityController extends Controller
                     'amountureafertilizer',
                     'herbicide',
                     'othertypes',
+                    'fertilizer_formula',
                     'otheringredientcosts',
                     'herbicidecost',
                     'weed',
@@ -394,6 +440,7 @@ class FactoryActivityController extends Controller
                     'cuttingtype',
                     'sugarcanetype',
                     'sugarcanecuttinglabor',
+                    'sugarcane_truck_type',
                     'laborwages',
                     'fuelcost'
                 ]);
@@ -407,7 +454,8 @@ class FactoryActivityController extends Controller
             'sugartype',
             'plotsugar_id',
             'selectdate',
-            'created_at'
+            'created_at',
+            'status'
         ];
 
         $D = FactoryActivity::select($col);
@@ -470,6 +518,7 @@ class FactoryActivityController extends Controller
                         'sugartype' => $item->sugartype,
                         'plotsugar_id' => $item->plotsugar_id,
                         'selectdate' => Carbon::parse($item->selectdate)->format('Y-m-d'),
+                        'status' => $item->status,
                         'subdata' => []
                     ];
                 }
@@ -497,6 +546,7 @@ class FactoryActivityController extends Controller
                     'amountureafertilizer' => $item->amountureafertilizer,
                     'herbicide' => $item->herbicide,
                     'othertypes' => $item->othertypes,
+                    'fertilizer_formula' => $item->fertilizer_formula,
                     'otheringredientcosts' => $item->otheringredientcosts,
                     'herbicidecost' => $item->herbicidecost,
                     'weed' => $item->weed,
@@ -507,6 +557,7 @@ class FactoryActivityController extends Controller
                     'cuttingtype' => $item->cuttingtype,
                     'sugarcanetype' => $item->sugarcanetype,
                     'sugarcanecuttinglabor' => $item->sugarcanecuttinglabor,
+                    'sugarcane_truck_type' => $item->sugarcane_truck_type,
                     'laborwages' => $item->laborwages,
                     'fuelcost' => $item->fuelcost
                 ];
@@ -660,6 +711,7 @@ class FactoryActivityController extends Controller
                         $Item->amountureafertilizer = $request->amountureafertilizer;
                         $Item->herbicide = $request->herbicide;
                         $Item->othertypes = $request->othertypes;
+                        $Item->fertilizer_formula = $request->fertilizer_formula;
                         $Item->otheringredientcosts = $request->otheringredientcosts * $areaRatio;
                         $Item->herbicidecost = $request->herbicidecost * $areaRatio;
                         $Item->fertilizer = $request->fertilizer;
@@ -714,6 +766,7 @@ class FactoryActivityController extends Controller
                         ]);
                         break;
                     case '7':
+                        $Item->sugarcane_truck_type = $request->sugarcane_truck_type;
                         $Item->laborwages = $request->laborwages * $areaRatio;
                         $Item->fuelcost = $request->fuelcost * $areaRatio;
 
@@ -909,6 +962,7 @@ class FactoryActivityController extends Controller
                     'amountureafertilizer' => $item->amountureafertilizer,
                     'herbicide' => $item->herbicide,
                     'othertypes' => $item->othertypes,
+                    'fertilizer_formula' => $item->fertilizer_formula,
                     'otheringredientcosts' => $item->otheringredientcosts,
                     'herbicidecost' => $item->herbicidecost,
                     'fertilizer' => $item->fertilizer,
@@ -945,6 +999,7 @@ class FactoryActivityController extends Controller
                 break;
             case '7':
                 $data = array_merge($data, [
+                    'sugarcane_truck_type' => $item->sugarcane_truck_type,
                     'laborwages' => $item->laborwages,
                     'fuelcost' => $item->fuelcost
                 ]);
@@ -1052,15 +1107,15 @@ class FactoryActivityController extends Controller
                         $Item->subtypeplowing = $request->subtypeplowing;
                     }
 
-                    $Item->insecticidecost = $request->insecticidecost ;
-                    $Item->equipmentrent = $request->equipmentrent ;
-                    $Item->laborwages = $request->laborwages ;
-                    $Item->fuelcost = $request->fuelcost ;
+                    $Item->insecticidecost = $request->insecticidecost;
+                    $Item->equipmentrent = $request->equipmentrent;
+                    $Item->laborwages = $request->laborwages;
+                    $Item->fuelcost = $request->fuelcost;
 
                     $data = array_merge($data, [
-                        "insecticidecost" => $request->insecticidecost ,
-                        "equipmentrent" => $request->equipmentrent ,
-                        "laborwages" => $request->laborwages ,
+                        "insecticidecost" => $request->insecticidecost,
+                        "equipmentrent" => $request->equipmentrent,
+                        "laborwages" => $request->laborwages,
                         "fuelcost" => $request->fuelcost
                     ]);
 
@@ -1073,15 +1128,15 @@ class FactoryActivityController extends Controller
                         $Item->expenses = $request->expenses;
                     }
 
-                    $Item->sugartypecost = $request->sugartypecost ;
+                    $Item->sugartypecost = $request->sugartypecost;
                     $Item->sugarcaneplantingcost = $request->sugarcaneplantingcost;
-                    $Item->fertilizercost = $request->fertilizercost ;
+                    $Item->fertilizercost = $request->fertilizercost;
                     $Item->fuelcost = $request->fuelcost;
 
                     $data = array_merge($data, [
                         "sugartypecost" => $request->sugartypecost,
-                        "sugarcaneplantingcost" => $request->sugarcaneplantingcost ,
-                        "fertilizercost" => $request->fertilizercost ,
+                        "sugarcaneplantingcost" => $request->sugarcaneplantingcost,
+                        "fertilizercost" => $request->fertilizercost,
                         "fuelcost" => $request->fuelcost
                     ]);
 
@@ -1095,7 +1150,7 @@ class FactoryActivityController extends Controller
                     $Item->fuelcost = $request->fuelcost;
 
                     $data = array_merge($data, [
-                        "laborwages" => $request->laborwages ,
+                        "laborwages" => $request->laborwages,
                         "fuelcost" => $request->fuelcost
                     ]);
                     break;
@@ -1106,19 +1161,20 @@ class FactoryActivityController extends Controller
                         $Item->amountureafertilizer = $request->amountureafertilizer;
                         $Item->herbicide = $request->herbicide;
                         $Item->othertypes = $request->othertypes;
+                        $Item->fertilizer_formula = $request->fertilizer_formula;
                     }
 
-                    $Item->otheringredientcosts = $request->otheringredientcosts ;
-                    $Item->herbicidecost = $request->herbicidecost ;
+                    $Item->otheringredientcosts = $request->otheringredientcosts;
+                    $Item->herbicidecost = $request->herbicidecost;
                     $Item->fertilizer = $request->fertilizer;
-                    $Item->laborwages = $request->laborwages ;
-                    $Item->fuelcost = $request->fuelcost ;
+                    $Item->laborwages = $request->laborwages;
+                    $Item->fuelcost = $request->fuelcost;
 
                     $data = array_merge($data, [
-                        "otheringredientcosts" => $request->otheringredientcosts ,
-                        "herbicidecost" => $request->herbicidecost ,
+                        "otheringredientcosts" => $request->otheringredientcosts,
+                        "herbicidecost" => $request->herbicidecost,
                         "fertilizer" => $request->fertilizer,
-                        "laborwages" => $request->laborwages ,
+                        "laborwages" => $request->laborwages,
                         "fuelcost" => $request->fuelcost
                     ]);
                     break;
@@ -1128,7 +1184,7 @@ class FactoryActivityController extends Controller
                         $Item->plantdiseases = $request->plantdiseases;
                         $Item->pests = $request->pests;
                     }
-                    $Item->pesticidecost = $request->pesticidecost ;
+                    $Item->pesticidecost = $request->pesticidecost;
                     $Item->laborwages = $request->laborwages;
                     $Item->fuelcost = $request->fuelcost;
 
@@ -1145,13 +1201,13 @@ class FactoryActivityController extends Controller
                     }
 
                     $Item->fertilizer = $request->fertilizer;
-                    $Item->laborwages = $request->laborwages ;
-                    $Item->fuelcost = $request->fuelcost ;
+                    $Item->laborwages = $request->laborwages;
+                    $Item->fuelcost = $request->fuelcost;
 
                     $data = array_merge($data, [
                         "fertilizer" => $request->fertilizer,
-                        "laborwages" => $request->laborwages ,
-                        "fuelcost" => $request->fuelcost 
+                        "laborwages" => $request->laborwages,
+                        "fuelcost" => $request->fuelcost
                     ]);
                     break;
                 case '6':
@@ -1160,20 +1216,21 @@ class FactoryActivityController extends Controller
                         $Item->sugarcanetype = $request->sugarcanetype;
                     }
 
-                    $Item->sugarcanecuttinglabor = $request->sugarcanecuttinglabor ;
+                    $Item->sugarcanecuttinglabor = $request->sugarcanecuttinglabor;
                     $Item->fuelcost = $request->fuelcost;
 
                     $data = array_merge($data, [
-                        "sugarcanecuttinglabor" => $request->sugarcanecuttinglabor ,
+                        "sugarcanecuttinglabor" => $request->sugarcanecuttinglabor,
                         "fuelcost" => $request->fuelcost
                     ]);
                     break;
                 case '7':
-                    $Item->laborwages = $request->laborwages ;
-                    $Item->fuelcost = $request->fuelcost ;
+                    $Item->laborwages = $request->laborwages;
+                    $Item->fuelcost = $request->fuelcost;
+                    $Item->sugarcane_truck_type = $request->sugarcane_truck_type;
 
                     $data = array_merge($data, [
-                        "laborwages" => $request->laborwages ,
+                        "laborwages" => $request->laborwages,
                         "fuelcost" => $request->fuelcost
                     ]);
                     break;
@@ -1248,16 +1305,16 @@ class FactoryActivityController extends Controller
                             $rest->subtypeplowing = $request->subtypeplowing;
                         }
 
-                        $rest->insecticidecost = ($insecticidecostkey)? $rest->insecticidecost : round($afterupdate['insecticidecost'] * $areaRatio, 2);
-                        $rest->equipmentrent = ($equipmentrentkey)? $rest->equipmentrent : round($afterupdate['equipmentrent'] * $areaRatio, 2);
-                        $rest->laborwages =  ($laborwageskey)? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost =  ($fuelcostkey)? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2);
+                        $rest->insecticidecost = ($insecticidecostkey) ? $rest->insecticidecost : round($afterupdate['insecticidecost'] * $areaRatio, 2);
+                        $rest->equipmentrent = ($equipmentrentkey) ? $rest->equipmentrent : round($afterupdate['equipmentrent'] * $areaRatio, 2);
+                        $rest->laborwages =  ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->fuelcost =  ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
-                            "insecticidecost" => ($insecticidecostkey)? $rest->insecticidecost: round($afterupdate['insecticidecost'] * $areaRatio, 2),
-                            "equipmentrent" => ($equipmentrentkey)? $rest->equipmentrent :round($afterupdate['equipmentrent'] * $areaRatio, 2),
-                            "laborwages" => ($laborwageskey)? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2),
-                            "fuelcost" => ($fuelcostkey)? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2)
+                            "insecticidecost" => ($insecticidecostkey) ? $rest->insecticidecost : round($afterupdate['insecticidecost'] * $areaRatio, 2),
+                            "equipmentrent" => ($equipmentrentkey) ? $rest->equipmentrent : round($afterupdate['equipmentrent'] * $areaRatio, 2),
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
 
                         break;
@@ -1269,16 +1326,16 @@ class FactoryActivityController extends Controller
                             $rest->expenses = $request->expenses;
                         }
 
-                        $rest->sugartypecost = ($sugartypecostkey) ? $rest->sugartypecost :round($afterupdate['sugartypecost'] * $areaRatio, 2);
-                        $rest->sugarcaneplantingcost =  ($sugarcaneplantingcostkey) ? $rest->sugarcaneplantingcost :round($afterupdate['sugarcaneplantingcost'] * $areaRatio,2);
-                        $rest->fertilizercost =  ($fertilizercostkey) ? $rest->fertilizercost :round($afterupdate['fertilizercost'] * $areaRatio, 2);
-                        $rest->fuelcost =  ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2);
+                        $rest->sugartypecost = ($sugartypecostkey) ? $rest->sugartypecost : round($afterupdate['sugartypecost'] * $areaRatio, 2);
+                        $rest->sugarcaneplantingcost =  ($sugarcaneplantingcostkey) ? $rest->sugarcaneplantingcost : round($afterupdate['sugarcaneplantingcost'] * $areaRatio, 2);
+                        $rest->fertilizercost =  ($fertilizercostkey) ? $rest->fertilizercost : round($afterupdate['fertilizercost'] * $areaRatio, 2);
+                        $rest->fuelcost =  ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
-                            "sugartypecost" => ($sugartypecostkey) ? $rest->sugartypecost :round($afterupdate['sugartypecost'] * $areaRatio, 2),
-                            "sugarcaneplantingcost" => ($sugarcaneplantingcostkey) ? $rest->sugarcaneplantingcost :round($afterupdate['sugarcaneplantingcost'] * $areaRatio,2),
-                            "fertilizercost" => ($fertilizercostkey) ? $rest->fertilizercost :round($afterupdate['fertilizercost'] * $areaRatio, 2),
-                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2)
+                            "sugartypecost" => ($sugartypecostkey) ? $rest->sugartypecost : round($afterupdate['sugartypecost'] * $areaRatio, 2),
+                            "sugarcaneplantingcost" => ($sugarcaneplantingcostkey) ? $rest->sugarcaneplantingcost : round($afterupdate['sugarcaneplantingcost'] * $areaRatio, 2),
+                            "fertilizercost" => ($fertilizercostkey) ? $rest->fertilizercost : round($afterupdate['fertilizercost'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
 
                         break;
@@ -1287,12 +1344,12 @@ class FactoryActivityController extends Controller
                             $rest->wateringsystem = $request->wateringsystem;
                         }
 
-                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2);
                         $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
-                            "laborwages" => ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2),
-                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost']* $areaRatio, 2)
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
                         break;
                     case '3':
@@ -1304,18 +1361,18 @@ class FactoryActivityController extends Controller
                             $rest->othertypes = $request->othertypes;
                         }
 
-                        $rest->otheringredientcosts = ($otheringredientcostskey) ? $rest->otheringredientcosts :round($afterupdate['otheringredientcosts'] * $areaRatio, 2);
-                        $rest->herbicidecost = ($otheringredientcostskey) ? $rest->herbicidecost :round($afterupdate['herbicidecost'] * $areaRatio, 2);
+                        $rest->otheringredientcosts = ($otheringredientcostskey) ? $rest->otheringredientcosts : round($afterupdate['otheringredientcosts'] * $areaRatio, 2);
+                        $rest->herbicidecost = ($otheringredientcostskey) ? $rest->herbicidecost : round($afterupdate['herbicidecost'] * $areaRatio, 2);
                         // $rest->fertilizer = round($afterupdate['fertilizer'] * $areaRatio, 2);
                         $rest->laborwages = ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
-                            "otheringredientcosts" => ($otheringredientcostskey) ? $rest->otheringredientcosts :round($afterupdate['otheringredientcosts'] * $areaRatio, 2),
-                            "herbicidecost" => ($herbicidecostkey) ? $rest->herbicidecost :round($afterupdate['herbicidecost'] * $areaRatio, 2),
+                            "otheringredientcosts" => ($otheringredientcostskey) ? $rest->otheringredientcosts : round($afterupdate['otheringredientcosts'] * $areaRatio, 2),
+                            "herbicidecost" => ($herbicidecostkey) ? $rest->herbicidecost : round($afterupdate['herbicidecost'] * $areaRatio, 2),
                             // "fertilizer" => round($afterupdate['fertilizer'] * $areaRatio, 2),
-                            "laborwages" => ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2),
-                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2)
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
                         break;
                     case '4':
@@ -1324,14 +1381,14 @@ class FactoryActivityController extends Controller
                             $rest->plantdiseases = $request->plantdiseases;
                             $rest->pests = $request->pests;
                         }
-                        $rest->pesticidecost = ($pesticidecostkey) ? $rest->pesticidecost :round($afterupdate['pesticidecost'] * $areaRatio, 2);
-                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2);
+                        $rest->pesticidecost = ($pesticidecostkey) ? $rest->pesticidecost : round($afterupdate['pesticidecost'] * $areaRatio, 2);
+                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
-                            "pesticidecost" => ($pesticidecostkey) ? $rest->pesticidecost :round($afterupdate['pesticidecost'] * $areaRatio, 2),
-                            "laborwages" => ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2),
-                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2)
+                            "pesticidecost" => ($pesticidecostkey) ? $rest->pesticidecost : round($afterupdate['pesticidecost'] * $areaRatio, 2),
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
                         break;
                     case '5':
@@ -1341,13 +1398,13 @@ class FactoryActivityController extends Controller
                         }
 
                         // $rest->fertilizer = round($request->fertilizer * $areaRatio, 2);
-                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2);
+                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
                             // "fertilizer" => round($request->fertilizer * $areaRatio, 2),
-                            "laborwages" => ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2),
-                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio, 2)
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
                         break;
                     case '6':
@@ -1356,21 +1413,21 @@ class FactoryActivityController extends Controller
                             $rest->sugarcanetype = $request->sugarcanetype;
                         }
 
-                        $rest->sugarcanecuttinglabor = ($sugarcanecuttinglaborkey) ? $rest->sugarcanecuttinglabor :round($afterupdate['sugarcanecuttinglabor'] * $areaRatio, 2);
-                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost']* $areaRatio, 2);
+                        $rest->sugarcanecuttinglabor = ($sugarcanecuttinglaborkey) ? $rest->sugarcanecuttinglabor : round($afterupdate['sugarcanecuttinglabor'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio, 2);
 
                         $data = array_merge($data, [
                             "sugarcanecuttinglabor" => round($afterupdate['sugarcanecuttinglabor'] * $areaRatio, 2),
-                            "fuelcost" => round($afterupdate['fuelcost']* $areaRatio, 2)
+                            "fuelcost" => round($afterupdate['fuelcost'] * $areaRatio, 2)
                         ]);
                         break;
                     case '7':
-                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages'] * $areaRatio, 2);
-                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost'] * $areaRatio);
+                        $rest->laborwages = ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages'] * $areaRatio, 2);
+                        $rest->fuelcost = ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost'] * $areaRatio);
 
                         $data = array_merge($data, [
-                            "laborwages" => ($laborwageskey) ? $rest->laborwages :round($afterupdate['laborwages']  * $areaRatio),
-                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost :round($afterupdate['fuelcost']  * $areaRatio)
+                            "laborwages" => ($laborwageskey) ? $rest->laborwages : round($afterupdate['laborwages']  * $areaRatio),
+                            "fuelcost" => ($fuelcostkey) ? $rest->fuelcost : round($afterupdate['fuelcost']  * $areaRatio)
                         ]);
                         break;
                     default:
@@ -1501,16 +1558,16 @@ class FactoryActivityController extends Controller
     public function newdestroy(Request $request)
     {
         DB::beginTransaction();
-    
+
         try {
             $item = FactoryActivity::find($request->id);
-    
+
             if (empty($item->trans_id)) {
                 return $this->returnErrorData('ไม่สามารถลบได้', 404);
             }
-    
+
             $fullTrans = FactoryActivity::where('trans_id', $item->trans_id)->get();
-    
+
             // Calculate the sum of costs
             $costSums = [
                 'insecticidecost' => $fullTrans->sum('insecticidecost') ?? 0,
@@ -1526,13 +1583,13 @@ class FactoryActivityController extends Controller
                 'laborwages' => $fullTrans->sum('laborwages') ?? 0,
                 'fuelcost' => $fullTrans->sum('fuelcost') ?? 0,
             ];
-    
+
             DeductPaid::where('factory_activity_id', $item->id)->delete();
             $transId = $item->trans_id;
             $item->delete();
-    
+
             $remainingItems = FactoryActivity::where('trans_id', $transId)->get();
-    
+
             if ($remainingItems->isNotEmpty()) {
                 $totalAreaSize = $remainingItems->sum('areasize');
                 $data = [];
@@ -1624,15 +1681,15 @@ class FactoryActivityController extends Controller
                             DB::rollBack();
                             return $this->returnErrorData("เกิดข้อผิดพลาด", 422);
                     }
-    
+
                     $remainingItem->save();
                     foreach ($data as $key => $value) {
                         $deductTypeId = $this->getDeductTypeId($key);
-    
+
                         $deduct = DeductPaid::where('factory_activity_id', $remainingItem->id)
                             ->where('deduct_type_id', $deductTypeId)
                             ->first();
-    
+
                         if ($deduct) {
                             $deduct->paid = $value ?? 0;
                             $deduct->month = $date->month;
@@ -1650,7 +1707,7 @@ class FactoryActivityController extends Controller
                         }
                     }
                 }
-    
+
                 // Reorder remaining items
                 $this->reorderNo(
                     $remainingItems->first()->frammer_id,
@@ -1659,20 +1716,19 @@ class FactoryActivityController extends Controller
                     $remainingItems->first()->plotsugar_id
                 );
             }
-    
+
             // Log the operation
             $userId = "admin";
             $type = 'ลบผู้ใช้งาน';
             $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
             $this->Log($userId, $description, $type);
-    
+
             DB::commit();
-    
+
             return $this->returnUpdate('ดำเนินการสำเร็จ');
         } catch (\Throwable $e) {
             DB::rollback();
             return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
         }
     }
-    
 }

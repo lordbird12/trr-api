@@ -15,6 +15,7 @@ class CreateFactoryActivityTable extends Migration
     {
         Schema::create('factory_activity', function (Blueprint $table) {
             $table->increments('id');
+            $table->enum('status', ['active', 'done'])->charset('utf8')->default('active');
             $table->integer('trans_id')->unsigned()->nullable();//ไอดีเกษตรกร
             //ใช้ร่วมกันทุกตัว
             $table->integer('frammer_id')->unsigned()->nullable();//ไอดีเกษตรกร
@@ -23,7 +24,7 @@ class CreateFactoryActivityTable extends Migration
             $table->string('sugartype');//ประเภทน้ำตาล
             $table->integer('plotsugar_id')->unsigned()->nullable();//ไร่ที่เลือก
             $table->string('activitytype')->nullable();//ประเภทกิจกรรม
-            $table->integer('NO')->unsigned()->nullable()->default(0);//ไอดีเกษตรกร
+            $table->integer('No')->unsigned()->nullable()->default(0);//ไอดีเกษตรกร
             $table->string('selectdate')->nullable();//วันที่เลือกกิจกรรม
             $table->string('image', 255)->charset('utf8')->nullable();//รูปภาพ
             
@@ -63,6 +64,8 @@ class CreateFactoryActivityTable extends Migration
             $table->double('amountureafertilizer')->nullable();//ค่าปุ๋ยยูเรีย
             $table->string('herbicide')->nullable();//สารกำจัดวัชพืช
             $table->string('othertypes')->nullable();//อื่นๆ
+            $table->string('fertilizer_formula')->nullable();//สูตรปุ๋ย
+
             //ค่าปุ๋ยรองพื้น
             $table->double('otheringredientcosts')->nullable();//ค่าส่วนผสมอื่นๆ
             $table->double('herbicidecost')->nullable();//ค่ากำจัดวัชพืช
@@ -91,6 +94,7 @@ class CreateFactoryActivityTable extends Migration
             //ค่าเชื้อเพลิง
 
             //ขนส่งอ้อย 7
+            $table->string('sugarcane_truck_type')->nullable();//ประเภทการตัดอ้อย
             //ค่าจ้างแรงงาน
             //ค่าเชื้อเพลิง
 

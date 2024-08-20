@@ -16,8 +16,9 @@ class CreateDeductPaidsTable extends Migration
         Schema::create('deduct_paids', function (Blueprint $table) {
             $table->increments('id');
 
-            $table->integer('frammer_id')->unsigned()->index();
-            $table->foreign('frammer_id')->references('id')->on('frammers')->onDelete('cascade');
+            // $table->integer('frammer_id')->unsigned()->index();
+            // $table->foreign('frammer_id')->references('id')->on('frammers')->onDelete('cascade');
+            $table->integer('frammer_id')->unsigned()->nullable();//ไอดีเกษตรกร
 
             $table->integer('factory_activity_id')->unsigned()->index();
             $table->foreign('factory_activity_id')->references('id')->on('factory_activity')->onDelete('cascade');
@@ -25,7 +26,7 @@ class CreateDeductPaidsTable extends Migration
             $table->integer('deduct_type_id')->unsigned()->index();
             $table->foreign('deduct_type_id')->references('id')->on('deduct_types')->onDelete('cascade');
 
-            $table->string('code');
+            $table->string('code')->nullable();
             $table->double('paid', 10, 2)->default(0.00);
 
             $table->string('month', 2)->nullable();
