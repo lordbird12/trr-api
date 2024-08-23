@@ -111,10 +111,21 @@ class FactoryController extends Controller
     public function store(Request $request)
     {
         $loginBy = $request->login_by;
-
+        $validator = Validator::make($request->all(), [
+            'name' => 'unique:factories|required',
+            'factory_id' => 'unique:factories|required',
+        ], [
+            'name.unique' => 'ชื่อซ้ำ กรุณาเลือกใหม่อีกครั้ง',
+            'factory_id.unique' => 'id ซ้ำ กรุณาเลือกใหม่อีกครั้ง',
+        ]);
+        
+        if ($validator->fails()) {
+            $errors = $validator->errors()->first();
+            return $this->returnErrorData($errors, 422);
+        }
         if (!isset($request->name)) {
             return $this->returnErrorData('กรุณาระบุชื่อให้เรียบร้อย', 404);
-        } else
+        }
 
             DB::beginTransaction();
 
@@ -123,6 +134,7 @@ class FactoryController extends Controller
             $prefix = "#FAC-";
             $id = IdGenerator::generate(['table' => 'factories', 'field' => 'code', 'length' => 9, 'prefix' => $prefix]);
             $Item->code = $id;
+            $Item->factory_id = $request->factory_id;
             $Item->name = $request->name;
             $Item->address = $request->address;
             $Item->phone = $request->phone;
@@ -186,7 +198,18 @@ class FactoryController extends Controller
     public function update(Request $request, $id)
     {
         $loginBy = $request->login_by;
-
+        // $validator = Validator::make($request->all(), [
+        //     'name' => 'unique:factories|required',
+        //     'factory_id' => 'unique:factories|required',
+        // ], [
+        //     'name.unique' => 'ชื่อซ้ำ กรุณาเลือกใหม่อีกครั้ง',
+        //     'factory_id.unique' => 'id ซ้ำ กรุณาเลือกใหม่อีกครั้ง',
+        // ]);
+        
+        // if ($validator->fails()) {
+        //     $errors = $validator->errors()->first();
+        //     return $this->returnErrorData($errors, 422);
+        // }
         // return $request->all();
             DB::beginTransaction();
 

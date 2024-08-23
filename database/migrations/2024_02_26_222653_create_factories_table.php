@@ -16,6 +16,7 @@ class CreateFactoriesTable extends Migration
         Schema::create('factories', function (Blueprint $table) {
             $table->increments('id');
 
+            $table->integer('factory_id')->unsigned()->nullable();//ไอดีเกษตรกร
             $table->string('code', 200)->unique()->charset('utf8');
             $table->string('name', 200)->unique()->charset('utf8');
             $table->text('address')->charset('utf8')->nullable();

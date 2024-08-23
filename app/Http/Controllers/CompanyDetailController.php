@@ -105,7 +105,7 @@ class CompanyDetailController extends Controller
         // dd($request->all());
         $id = $request->factory_id;
         $data = CompanyDetail::first();
-        $data->factory = Factory::where('id', $id)->first();
+        $data->factory = Factory::where('factory_id', $id)->first();
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
     }
