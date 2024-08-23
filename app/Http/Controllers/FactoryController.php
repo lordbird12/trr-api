@@ -36,7 +36,7 @@ class FactoryController extends Controller
 
         $Status = $request->status;
 
-        $col = array('id', 'code', 'name', 'address','email','phone', 'lat', 'lon', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
+        $col = array('id','factory_id', 'code', 'name', 'address','email','phone', 'lat', 'lon', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
 
         $orderby = array('', 'code', 'name', 'address', 'lat', 'lon', 'status', 'create_by');
 
