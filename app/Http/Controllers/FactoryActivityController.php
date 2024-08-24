@@ -495,12 +495,12 @@ class FactoryActivityController extends Controller
             });
         }
 
+        $D->orderBy('selectdate', 'desc');
         $d = $D->paginate($length, ['*'], 'page', $page);
         // $d = $D;
 
         $groupedData = [];
         if ($d->isNotEmpty()) {
-
             foreach ($d as $key => $item) {
                 if (isset($item->image)) {
                     $item->image = url($item->image);
