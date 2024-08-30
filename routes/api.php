@@ -24,6 +24,7 @@ use App\Http\Controllers\FactoryActivityController;
 use App\Http\Controllers\RainController;
 use App\Http\Controllers\CompanyDetailController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RainImageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -186,6 +187,9 @@ Route::post('/new_delete', [FactoryActivityController::class, 'newdestroy']);
 // Rain
 Route::resource('rain', RainController::class);
 Route::post('/get_rain', [RainController::class, 'getList']);
+
+Route::post('/upload_rain_image', [RainImageController::class, 'uploadrainimage']);
+Route::post('/get_rain_image', [RainImageController::class, 'getList']);
 
 // CompanyDetails
 Route::resource('company', CompanyDetailController::class);
