@@ -27,7 +27,12 @@ class RainImageController extends Controller
 
         $Item = $Item->get();
         $Item = $Item->map(function ($item) {
-            $item->image = url($item->image);
+            if(isset($item->image)){
+                $item->image = url($item->image);
+            }else{
+                $item->image = null;
+            }
+            
             return $item;
         });
 
