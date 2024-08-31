@@ -106,6 +106,13 @@ class DashboardController extends Controller
 
         $query1 = DeductPaid::query();
 
+        // dd($request->all());
+        if ($request->has('start_year') && $request->has('end_year')) {
+            $startDate = \Carbon\Carbon::createFromDate($request->start_year, 1, 1)->startOfYear()->setTimezone('UTC');
+            $endDate = \Carbon\Carbon::createFromDate($request->end_year, 12, 31)->endOfYear()->setTimezone('UTC');
+            $query1->whereBetween('updated_at', [$startDate, $endDate]);
+        }
+        // return $query1->get();
         if (isset($frammerId)) {
             $query1->where('frammer_id', $frammerId);
         }
@@ -118,6 +125,12 @@ class DashboardController extends Controller
         });
 
         $query2 = IncomePaid::query();
+
+        if ($request->has('start_year') && $request->has('end_year')) {
+            $startDate = \Carbon\Carbon::createFromDate($request->start_year, 1, 1)->startOfYear()->setTimezone('UTC');
+            $endDate = \Carbon\Carbon::createFromDate($request->end_year, 12, 31)->endOfYear()->setTimezone('UTC');
+            $query2->whereBetween('updated_at', [$startDate, $endDate]);
+        }
 
         if (isset($frammerId)) {
             $query2->where('frammer_id', $frammerId);
