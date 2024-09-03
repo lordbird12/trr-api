@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Mail\SendMail;
+use App\Models\Device;
 use App\Models\Inquiry_type;
 use App\Models\Log;
+use App\Models\Notify_log;
+use App\Models\Notify_log_user;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -15,10 +18,19 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Http;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Laravel\Firebase\Facades\Firebase;
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
+    protected $notification;
+
+    public function __construct()
+    {
+        $this->notification = Firebase::messaging();
+    }
 
     public function returnSuccess($massage, $data)
     {
@@ -78,6 +90,170 @@ class Controller extends BaseController
         $Log->description = $description;
         $Log->type = $type;
         $Log->save();
+    }
+
+    public function sendNotifyAll($title, $body, $target_id, $type)
+    {
+
+        $device =  Device::with('user')->get();
+
+        $notiToken = [];
+        $notifyUser = [];
+
+        for ($i = 0; $i < count($device); $i++) {
+
+            $notiToken[] = $device[$i]->notify_token;
+            $notifyUser[] = $device[$i]->user_id;
+        }
+
+        $FcmToken = array_values(array_unique($notiToken));
+
+
+        for ($i = 0; $i < count($FcmToken); $i++) {
+
+            try {
+
+                $message = CloudMessage::fromArray([
+                    'token' => $FcmToken[$i],
+                    'notification' => [
+                        'title' => $title,
+                        'body' => $body
+                    ],
+                ]);
+
+                $this->notification->send($message);
+            } catch (\Throwable $e) {
+                //
+            }
+        }
+
+
+
+        //add log
+        $this->addNotifyLog($title, $body, $target_id, $type, $notifyUser);
+    }
+
+    public function sendNotify($title, $body, $target_id, $type, $user_id)
+    {
+
+        $device =  Device::with('user')
+            ->where('user_id', $user_id)
+            ->get();
+
+        $notiToken = [];
+        $notifyUser = [];
+
+        for ($i = 0; $i < count($device); $i++) {
+
+            $notiToken[] = $device[$i]->notify_token;
+            $notifyUser[] = $device[$i]->user_id;
+        }
+
+        $FcmToken = array_values(array_unique($notiToken));
+        $NotifyUser = array_values(array_unique($notifyUser));
+
+        for ($i = 0; $i < count($FcmToken); $i++) {
+            try {
+                $message = CloudMessage::fromArray([
+                    'token' => $FcmToken[$i],
+                    'notification' => [
+                        'title' => $title,
+                        'body' => $body
+                    ],
+                ]);
+
+                $this->notification->send($message);
+            } catch (\Throwable $e) {
+                //
+            }
+        }
+
+
+
+
+        //add log
+        $this->addNotifyLog($title, $body, $target_id, $type, $NotifyUser);
+    }
+
+    public function sendNotifyMultiUser($title, $body, $target_id, $type, $userId)
+    {
+        $notiToken = [];
+        $notifyUser = [];
+
+        for ($j = 0; $j < count($userId); $j++) {
+
+            $device =  Device::with('user')
+                ->where('user_id', $userId[$j])
+                ->get();
+
+            for ($i = 0; $i < count($device); $i++) {
+
+                $notiToken[] = $device[$i]->notify_token;
+                $notifyUser[] = $device[$i]->user_id;
+            }
+        }
+
+        $FcmToken = array_values(array_unique($notiToken));
+        $NotifyUser = array_values(array_unique($notifyUser));
+
+        for ($i = 0; $i < count($FcmToken); $i++) {
+            try {
+
+                $message = CloudMessage::fromArray([
+                    'token' => $FcmToken[$i],
+                    'notification' => [
+                        'title' => $title,
+                        'body' => $body
+                    ],
+                ]);
+
+                $this->notification->send($message);
+            } catch (\Throwable $e) {
+                //
+            }
+        }
+
+        //add log
+        $this->addNotifyLog($title, $body, $target_id, $type, $NotifyUser);
+    }
+
+    public function testNoti()
+    {
+        $message = CloudMessage::fromArray([
+            'token' => 'cxb4Kp81TFqlZ7svhu0k4X:APA91bHl_HzAZmhH5TBOm9y2GybdtScb3Dsb704jiTZf1juenRytc0XVRDj5eat-WWW2vBMZU-5iTb-jNVRR2Djkf-3eHYUXzx6ImDAlpLWqllOr_j6bw2kn8D3d-vJzVYa5ijWt358B',
+            'notification' => [
+                'title' => 'ใช้ได้ยังพี่ค้อ',
+                'body' => 'ใช้ได้ยังพี่ค้อ'
+            ],
+        ]);
+
+        $this->notification->send($message);
+    }
+
+    public function addNotifyLog($title, $body, $target_id, $type, $NotifyUser)
+    {
+
+        $Notify_log = new  Notify_log();
+        $Notify_log->title = $title;
+        $Notify_log->detail = $body;
+        $Notify_log->target_id = $target_id;
+        $Notify_log->type = $type;
+        $Notify_log->save();
+
+        $result = array_unique($NotifyUser);
+        sort($result); // เรียงลำดับ index ตามค่า
+
+        //add notify user
+        for ($i = 0; $i < count($result); $i++) {
+            $Notify_log_user = new  Notify_log_user();
+            $Notify_log_user->notify_log_id =  $Notify_log->id;
+            $Notify_log_user->user_id = $result[$i];
+            $Notify_log_user->read = false;
+
+            $Notify_log_user->save();
+        }
+
+        return $Notify_log;
     }
 
     public function sendMail($email, $data, $title, $type)

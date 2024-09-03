@@ -204,3 +204,5 @@ Route::post('/get_incomededuct', [DashboardController::class, 'incomededuct']);
 
 Route::group(['middleware' => 'checkjwt'], function () {
 });
+
+Route::get('/testNoti', [Controller::class, 'testNoti']);

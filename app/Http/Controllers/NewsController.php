@@ -134,6 +134,13 @@ class NewsController extends Controller
             $Item->save();
             //
 
+            //send notification user
+            $title = 'แจ้งข่าวสาร';
+            $body = $Item->title;
+            $target_id = $Item->id;
+            $type = 'news';
+            $this->sendNotifyAll($title, $body, $target_id, $type);
+
             //log
             $userId = "admin";
             $type = 'เพิ่มรายการ';
