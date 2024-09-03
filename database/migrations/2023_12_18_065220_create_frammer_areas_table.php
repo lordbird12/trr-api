@@ -16,24 +16,21 @@ class CreateFrammerAreasTable extends Migration
         Schema::create('frammer_areas', function (Blueprint $table) {
             $table->increments('id');
 
-            $table->string('code', 100)->unique()->charset('utf8');
-
             $table->integer('frammer_id')->unsigned()->index();
-            $table->foreign('frammer_id')->references('id')->on('frammers')->onDelete('cascade');
-
+            // $table->foreign('frammer_id')->references('id')->on('frammers')->onDelete('cascade');
             $table->integer('year')->nullable();
-            $table->integer('contract_no')->nullable();
-            $table->integer('test_no')->nullable();
             $table->integer('area')->nullable();
-            $table->integer('all_area')->nullable();
-            $table->integer('bonsucro')->nullable();
-            $table->integer('gets_framing')->nullable();
-            $table->integer('finish_good')->nullable();
-
-            $table->string('country_code', 100)->charset('utf8');
-            $table->string('province_code', 100)->charset('utf8');
-
-            $table->enum('status', ['Yes', 'No', 'Request'])->charset('utf8')->default('Request');
+            $table->double('area_size')->nullable();
+            $table->integer('sugarcane_age')->nullable();
+            $table->string('sugarcane_type', 200)->charset('utf8');
+            $table->integer('product_per_rai')->nullable();
+            $table->string('measuring_point', 200)->charset('utf8');
+            $table->integer('distance')->nullable();
+            $table->integer('last_year_cumulative_rain')->nullable();
+            $table->integer('curr_year_cumulative_rain')->nullable();
+            $table->json('co_or_points');
+            $table->json('center');
+            // $table->integer('all_area')->nullable();
             $table->string('create_by', 100)->charset('utf8')->nullable();
             $table->string('update_by', 100)->charset('utf8')->nullable();
 

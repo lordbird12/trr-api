@@ -6,19 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class DeductType extends Model
+class Rain extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
 
-    protected $table = 'income_types';
+    protected $table = 'rain';
     protected $softDelete = true;
+    protected $casts = [
+        'co_or_points' => 'array',
+        'center' => 'array',
+    ];
 
     protected $hidden = ['deleted_at'];
-
-    public function deduct_paids()
-    {
-        return $this->hasMany(DeductPaid::class);
-    }
 }

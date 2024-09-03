@@ -36,7 +36,7 @@ class FactoryController extends Controller
 
         $Status = $request->status;
 
-        $col = array('id', 'code', 'name', 'address', 'lat', 'lon', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
+        $col = array('id','factory_id', 'code', 'name', 'address','email','phone', 'lat', 'lon', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
 
         $orderby = array('', 'code', 'name', 'address', 'lat', 'lon', 'status', 'create_by');
 
@@ -111,10 +111,21 @@ class FactoryController extends Controller
     public function store(Request $request)
     {
         $loginBy = $request->login_by;
-
+        $validator = Validator::make($request->all(), [
+            'name' => 'unique:factories|required',
+            'factory_id' => 'unique:factories|required',
+        ], [
+            'name.unique' => 'ชื่อซ้ำ กรุณาเลือกใหม่อีกครั้ง',
+            'factory_id.unique' => 'id ซ้ำ กรุณาเลือกใหม่อีกครั้ง',
+        ]);
+        
+        if ($validator->fails()) {
+            $errors = $validator->errors()->first();
+            return $this->returnErrorData($errors, 422);
+        }
         if (!isset($request->name)) {
             return $this->returnErrorData('กรุณาระบุชื่อให้เรียบร้อย', 404);
-        } else
+        }
 
             DB::beginTransaction();
 
@@ -123,8 +134,11 @@ class FactoryController extends Controller
             $prefix = "#FAC-";
             $id = IdGenerator::generate(['table' => 'factories', 'field' => 'code', 'length' => 9, 'prefix' => $prefix]);
             $Item->code = $id;
+            $Item->factory_id = $request->factory_id;
             $Item->name = $request->name;
             $Item->address = $request->address;
+            $Item->phone = $request->phone;
+            $Item->email = $request->email;
             $Item->lat = $request->lat;
             $Item->lon = $request->lon;
 
@@ -181,9 +195,53 @@ class FactoryController extends Controller
      * @param  \App\Models\Factory  $factory
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Factory $factory)
+    public function update(Request $request, $id)
     {
-        //
+        $loginBy = $request->login_by;
+        // $validator = Validator::make($request->all(), [
+        //     'name' => 'unique:factories|required',
+        //     'factory_id' => 'unique:factories|required',
+        // ], [
+        //     'name.unique' => 'ชื่อซ้ำ กรุณาเลือกใหม่อีกครั้ง',
+        //     'factory_id.unique' => 'id ซ้ำ กรุณาเลือกใหม่อีกครั้ง',
+        // ]);
+        
+        // if ($validator->fails()) {
+        //     $errors = $validator->errors()->first();
+        //     return $this->returnErrorData($errors, 422);
+        // }
+        // return $request->all();
+            DB::beginTransaction();
+
+        try {
+            $Item = Factory::find($id);
+            $Item->name = $request->name;
+            $Item->address = $request->address;
+            $Item->phone = $request->phone;
+            $Item->email = $request->email;
+            $Item->lat = $request->lat;
+            $Item->lon = $request->lon;
+
+
+            $Item->save();
+            //
+
+            //log
+            $userId = "admin";
+            $type = 'เพิ่มรายการ';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $Item->name;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
     }
 
     /**

@@ -20,6 +20,11 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RadioController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FactoryActivityController;
+use App\Http\Controllers\RainController;
+use App\Http\Controllers\CompanyDetailController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RainImageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -116,7 +121,7 @@ Route::post('/update_news', [NewsController::class, 'updateData']);
 // Framer Area
 Route::resource('frammer_area', FrammerAreaController::class);
 Route::post('/frammer_area_page', [FrammerAreaController::class, 'getPage']);
-Route::get('/get_frammer_area', [FrammerAreaController::class, 'getList']);
+Route::post('/get_frammer_area', [FrammerAreaController::class, 'getList']);
 
 // Framer Area Mix
 Route::resource('frammer_area_mix', FrammerAreaMixController::class);
@@ -167,6 +172,33 @@ Route::get('/get_income_paid/{frammer_id}/{month}/{year}', [IncomePaidController
 Route::resource('deduct_paid', DeductPaidController::class);
 Route::post('/deduct_paid_page', [DeductPaidController::class, 'getPage']);
 Route::get('/get_deduct_paid/{frammer_id}/{month}/{year}', [DeductPaidController::class, 'getList']);
+
+// Factory Activity
+Route::resource('factoryactivity', FactoryActivityController::class);
+Route::post('/factoryactivity_page', [FactoryActivityController::class, 'getPage']);
+Route::get('/get_factoryactivity', [FactoryActivityController::class, 'getList']);
+Route::post('/get_summaryactivity', [FactoryActivityController::class, 'summaryActivity']);
+Route::post('/post_summaryactivity', [FactoryActivityController::class, 'savesummaryActivity']);
+Route::post('/factoryactivity_page_mobile', [FactoryActivityController::class, 'getPagemobile']);
+Route::post('/factoryactivity_schedule', [FactoryActivityController::class, 'schedule']);
+Route::post('/check_no', [FactoryActivityController::class, 'check_no']);
+Route::post('/new_delete', [FactoryActivityController::class, 'newdestroy']);
+
+// Rain
+Route::resource('rain', RainController::class);
+Route::post('/get_rain', [RainController::class, 'getList']);
+
+Route::post('/upload_rain_image', [RainImageController::class, 'uploadrainimage']);
+Route::post('/get_rain_image', [RainImageController::class, 'getList']);
+
+// CompanyDetails
+Route::resource('company', CompanyDetailController::class);
+Route::post('/get_company_byfactory', [CompanyDetailController::class, 'getbyfacID']);
+
+//dashboard
+Route::post('/get_byactivitytype', [DashboardController::class, 'groutpby_activitytype']);
+Route::post('/get_byweekly', [DashboardController::class, 'groutpby_weekly']);
+Route::post('/get_incomededuct', [DashboardController::class, 'incomededuct']);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
