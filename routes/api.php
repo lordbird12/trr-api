@@ -24,6 +24,7 @@ use App\Http\Controllers\FactoryActivityController;
 use App\Http\Controllers\RainController;
 use App\Http\Controllers\CompanyDetailController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotifyLogUserController;
 use App\Http\Controllers\RainImageController;
 use Illuminate\Support\Facades\Route;
 
@@ -200,9 +201,13 @@ Route::post('/get_byactivitytype', [DashboardController::class, 'groutpby_activi
 Route::post('/get_byweekly', [DashboardController::class, 'groutpby_weekly']);
 Route::post('/get_incomededuct', [DashboardController::class, 'incomededuct']);
 
+//notify log user
+Route::post('/notify_log_user_page', [NotifyLogUserController::class, 'Page']);
+Route::get('/get_notify_log_user', [NotifyLogUserController::class, 'get']);
+Route::get('/testNoti', [Controller::class, 'testNoti']);
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Route::group(['middleware' => 'checkjwt'], function () {
-});
+Route::group(['middleware' => 'checkjwt'], function () {});
 
-Route::get('/testNoti', [Controller::class, 'testNoti']);
+
