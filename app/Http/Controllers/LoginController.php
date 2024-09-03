@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Device;
 use App\Models\Otp;
 use App\Models\User;
 use Carbon\Carbon;
@@ -86,6 +87,39 @@ class LoginController extends Controller
 
         if ($user) {
 
+            //app
+            $deviceNo = $request->device_no;
+            $notifyToken = $request->notify_token;
+
+
+            if ($deviceNo && $notifyToken) {
+                //check device
+                $deviceIsExist =  Device::where('device_no', $deviceNo)
+                    // ->where('notify_token', $notifyToken)
+                    ->where('status', true)
+                    ->where('user_id',  $user->id)
+                    ->first();
+
+                if (!$deviceIsExist) {
+                    //add
+                    $device = new Device();
+                    $device->user_id =  $user->id;
+                    $device->device_no =  $deviceNo;
+                    $device->notify_token =  $notifyToken;
+                    $device->status =  true;
+                    $device->save();
+                } else {
+                    //update
+                    $deviceIsExist->user_id =  $user->id;
+                    $deviceIsExist->device_no =  $deviceNo;
+                    $deviceIsExist->notify_token =  $notifyToken;
+                    $deviceIsExist->status =  true;
+                    $deviceIsExist->save();
+                }
+                //
+
+            }
+
             //log
             $username = $user->email;
             $log_type = 'เข้าสู่ระบบ';
@@ -151,6 +185,9 @@ class LoginController extends Controller
         $otpCode = $request->otp_code;
         $otpRef = $request->otp_ref;
         $tokenOtp = $request->token_otp;
+
+        $deviceNo = $request->device_no;
+        $notifyToken = $request->notify_token;
 
         if (!isset($tel)) {
             return $this->returnErrorData('กรุณาระบุเบอร์โทรศัพท์ให้เรียบร้อย', 404);
