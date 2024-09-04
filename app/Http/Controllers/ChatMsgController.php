@@ -17,6 +17,7 @@ class ChatMsgController extends Controller
         $qoutaId = $request->qouta_id;
 
         $Chat_msg = Chat_msg::with('frammer')
+            ->with('user')
             ->with('chat')
             ->where('chat_id', $ChatId);
 
@@ -234,7 +235,7 @@ class ChatMsgController extends Controller
 
             DB::rollback();
 
-            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง '.$e, 404);
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
         }
     }
 
