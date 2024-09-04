@@ -177,6 +177,7 @@ class ChatController extends Controller
             $ChatId = $CHAT->id;
 
             $Chat_msg = Chat_msg::with('frammer')
+                ->with('user')
                 ->with('chat')
                 ->where('chat_id', $ChatId);
 
