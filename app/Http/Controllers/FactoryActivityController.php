@@ -49,6 +49,7 @@ class FactoryActivityController extends Controller
             ->map(function ($group) {
                 return [
                     'plotsugar_id' => $group->first()->plotsugar_id,
+                    'status' => $group->first()->status,
                     'activities' => $group->map(function ($item, $index) {
                         return [
                             'No' => $item->No,
@@ -335,6 +336,7 @@ class FactoryActivityController extends Controller
                 }
             });
         }
+        $D->orderBy('selectdate', 'desc');
 
         $d = $D->paginate($length, ['*'], 'page', $page);
 
