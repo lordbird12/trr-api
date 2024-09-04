@@ -14,13 +14,9 @@ class ChatMsgController extends Controller
     {
         $ChatId = $request->chat_id;
         $type = $request->type;
-        $loginBy = $request->login_by;
+        $qoutaId = $request->qouta_id;
 
-        if (!isset($loginBy)) {
-            return $this->returnErrorData('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
-        }
-
-        $Chat_msg = Chat_msg::with('member')
+        $Chat_msg = Chat_msg::with('frammer')
             ->with('chat')
             ->where('chat_id', $ChatId);
 
@@ -36,14 +32,14 @@ class ChatMsgController extends Controller
                 $Chat_msg[$i]['No'] = $i + 1;
 
                 //positon comment
-                if ($loginBy->type  == 'member') {
-                    if ($loginBy->id == $Chat_msg[$i]['member_id']) {
+                if ($qoutaId) {
+                    if ($qoutaId == $Chat_msg[$i]['qouta_id']) {
                         $Chat_msg[$i]['positon_comment'] = 'Right';
                     } else {
                         $Chat_msg[$i]['positon_comment'] = 'Left';
                     }
                 } else {
-                    if ($Chat_msg[$i]['member_id']) {
+                    if ($Chat_msg[$i]['qouta_id']) {
                         $Chat_msg[$i]['positon_comment'] = 'Left';
                     } else {
                         $Chat_msg[$i]['positon_comment'] = 'Right';
@@ -77,21 +73,17 @@ class ChatMsgController extends Controller
 
         $ChatId = $request->chat_id;
         $type = $request->type;
-        $loginBy = $request->login_by;
-
-        if (!isset($loginBy)) {
-            return $this->returnErrorData('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
-        }
+        $qoutaId = $request->qouta_id;
 
         $status = $request->status;
 
-        $col = array('id', 'chat_id', 'user_id', 'member_id', 'message', 'type', 'status', 'created_at', 'updated_at');
+        $col = array('id', 'chat_id', 'user_id', 'qouta_id', 'message', 'type', 'status', 'created_at', 'updated_at');
 
-        $orderby = array('', 'chat_id', 'user_id', 'member_id', 'message', 'type', 'status', 'created_at', 'updated_at');
+        $orderby = array('', 'chat_id', 'user_id', 'qouta_id', 'message', 'type', 'status', 'created_at', 'updated_at');
 
         $d = Chat_msg::select($col)
             ->with('user')
-            ->with('member')
+            ->with('frammer')
             ->with('chat');
 
         //if
@@ -139,14 +131,14 @@ class ChatMsgController extends Controller
                 $d[$i]->No = $No;
 
                 //positon comment
-                if ($loginBy->type  == 'member') {
-                    if ($loginBy->id == $d[$i]->member_id) {
+                if ($qoutaId) {
+                    if ($qoutaId == $d[$i]->qouta_id) {
                         $d[$i]->positon_comment = 'Right';
                     } else {
                         $d[$i]->positon_comment = 'Left';
                     }
                 } else {
-                    if ($d[$i]->member_id) {
+                    if ($d[$i]->qouta_id) {
                         $d[$i]->positon_comment = 'Left';
                     } else {
                         $d[$i]->positon_comment = 'Right';
@@ -187,14 +179,12 @@ class ChatMsgController extends Controller
     public function store(Request $request)
     {
 
-        $loginBy = $request->login_by;
+        $userId = $request->user_id;
+        $qoutaId = $request->qouta_id;
 
         if (!isset($request->chat_id)) {
             return $this->returnErrorData('กรุณาระบุ chat_id ให้เรียบร้อย', 404);
-        } else if (!isset($loginBy)) {
-            return $this->returnErrorData('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
         }
-
         DB::beginTransaction();
 
         try {
@@ -202,8 +192,8 @@ class ChatMsgController extends Controller
             $Chat_msg = new Chat_msg();
             $Chat_msg->chat_id = $request->chat_id;
 
-            if ($loginBy->type  == 'member') {
-                $Chat_msg->member_id = $loginBy->id;
+            if ($qoutaId) {
+                $Chat_msg->qouta_id = $qoutaId;
 
                 //update read chat 0
                 $Chat = Chat::find($Chat_msg->chat_id);
@@ -211,7 +201,7 @@ class ChatMsgController extends Controller
                 $Chat->save();
                 //
             } else {
-                $Chat_msg->user_id = $loginBy->id;
+                $Chat_msg->user_id = $userId;
 
                 //update read chat 1
                 $Chat = Chat::find($Chat_msg->chat_id);
@@ -244,7 +234,7 @@ class ChatMsgController extends Controller
 
             DB::rollback();
 
-            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ', 404);
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง '.$e, 404);
         }
     }
 
@@ -257,7 +247,7 @@ class ChatMsgController extends Controller
     public function show($id)
     {
         $Chat_msg = Chat_msg::with('user')
-            ->with('member')
+            ->with('frammer')
             ->with('chat')
             ->find($id);
 
@@ -296,12 +286,11 @@ class ChatMsgController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $loginBy = $request->login_by;
+        $userId = $request->user_id;
+        $qoutaId = $request->qouta_id;
 
         if (!isset($id)) {
             return $this->returnErrorData('ไม่พบข้อมูล id', 404);
-        } else if (!isset($loginBy)) {
-            return $this->returnErrorData('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
         }
 
         DB::beginTransaction();
@@ -310,7 +299,7 @@ class ChatMsgController extends Controller
 
             $Chat_msg = Chat_msg::find($id);
             // $Chat_msg->course_id = $request->course_id;
-            // $Chat_msg->member_id = $loginBy->id;
+            // $Chat_msg->qouta_id = $loginBy->id;
 
             $Chat_msg->message = $request->message;
 
@@ -349,11 +338,8 @@ class ChatMsgController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $loginBy = $request->login_by;
+        $qoutaId = $request->qouta_id;
 
-        if (!isset($loginBy)) {
-            return $this->returnErrorData('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
-        }
 
         DB::beginTransaction();
 

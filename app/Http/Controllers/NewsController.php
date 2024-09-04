@@ -142,7 +142,7 @@ class NewsController extends Controller
             $this->sendNotifyAll($title, $body, $target_id, $type);
 
 
-            //เคสกรณีส่งระบุคน ใช้คำสั่งนี้ $userId เป็น array id เช่น [1,2,3]
+            //เคสกรณีส่งระบุคน ใช้คำสั่งนี้ $qoutaId ที่ได้จาก api  เป็น array id เช่น [477,327]
             // $this->sendNotifyMultiUser($title, $body, $target_id, $type, $userId);
 
             //log

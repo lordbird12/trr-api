@@ -13,6 +13,7 @@ class NotifyLogUserController extends Controller
 
         $notify_log_id = $request->notify_log_id;
         $user_id = $request->user_id;
+        $qouta_id = $request->qouta_id;
 
         $notify_log_user = Notify_log_user::with('notify_log')
             ->orderby('id', 'desc');
@@ -23,6 +24,10 @@ class NotifyLogUserController extends Controller
 
         if (isset($user_id)) {
             $notify_log_user->where('user_id', $user_id);
+        }
+
+        if (isset($qouta_id)) {
+            $notify_log_user->where('qouta_id', $qouta_id);
         }
 
         $Notify_log_user = $notify_log_user->get()->toarray();
@@ -48,10 +53,12 @@ class NotifyLogUserController extends Controller
 
         $notify_log_id = $request->notify_log_id;
         $user_id = $request->user_id;
+        $qouta_id = $request->qouta_id;
 
-        $col = array('id', 'notify_log_id', 'user_id', 'read', 'created_at', 'updated_at');
 
-        $orderby = array('id', 'notify_log_id', 'user_id', 'read', 'created_at', 'updated_at');
+        $col = array('id', 'notify_log_id', 'user_id', 'qouta_id', 'read', 'created_at', 'updated_at');
+
+        $orderby = array('id', 'notify_log_id', 'user_id', 'qouta_id', 'read', 'created_at', 'updated_at');
 
         $d = Notify_log_user::select($col)
             ->with('notify_log');
@@ -62,6 +69,10 @@ class NotifyLogUserController extends Controller
 
         if (isset($user_id)) {
             $d->where('user_id', $user_id);
+        }
+
+        if (isset($qouta_id)) {
+            $d->where('qouta_id', $qouta_id);
         }
 
         if ($orderby[$order[0]['column']]) {

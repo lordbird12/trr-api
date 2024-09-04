@@ -26,9 +26,9 @@ class Chat extends Model
 
     //////////////////////////////////////// relation //////////////////////////////////////
 
-    public function member()
+    public function frammer()
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(Frammers::class, 'qouta_id', 'qouta_id');
     }
 
     public function chat_msgs()

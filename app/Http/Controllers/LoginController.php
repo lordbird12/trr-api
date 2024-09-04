@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Device;
+use App\Models\Frammers;
 use App\Models\Otp;
 use App\Models\User;
 use Carbon\Carbon;
@@ -86,39 +87,6 @@ class LoginController extends Controller
             ->first();
 
         if ($user) {
-
-            //app
-            $deviceNo = $request->device_no;
-            $notifyToken = $request->notify_token;
-
-
-            if ($deviceNo && $notifyToken) {
-                //check device
-                $deviceIsExist =  Device::where('device_no', $deviceNo)
-                    // ->where('notify_token', $notifyToken)
-                    ->where('status', true)
-                    ->where('user_id',  $user->id)
-                    ->first();
-
-                if (!$deviceIsExist) {
-                    //add
-                    $device = new Device();
-                    $device->user_id =  $user->id;
-                    $device->device_no =  $deviceNo;
-                    $device->notify_token =  $notifyToken;
-                    $device->status =  true;
-                    $device->save();
-                } else {
-                    //update
-                    $deviceIsExist->user_id =  $user->id;
-                    $deviceIsExist->device_no =  $deviceNo;
-                    $deviceIsExist->notify_token =  $notifyToken;
-                    $deviceIsExist->status =  true;
-                    $deviceIsExist->save();
-                }
-                //
-
-            }
 
             //log
             $username = $user->email;
@@ -237,6 +205,64 @@ class LoginController extends Controller
             DB::rollback();
 
             return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e->getMessage(), 404);
+        }
+    }
+
+
+    public function loginApp(Request $request)
+    {
+
+        $qouta_id = $request->qouta_id;
+
+        if (!isset($qouta_id)) {
+            return $this->returnErrorData('[qouta_id] ไม่มีข้อมูล', 404);
+        }
+
+        $Item = Frammers::where('qouta_id', $qouta_id)->first();
+
+        if ($Item) {
+
+            //app
+            $deviceNo = $request->device_no;
+            $notifyToken = $request->notify_token;
+
+            if ($deviceNo && $notifyToken) {
+                //check device
+                $deviceIsExist =  Device::where('device_no', $deviceNo)
+                    // ->where('notify_token', $notifyToken)
+                    ->where('status', true)
+                    ->where('qouta_id',  $qouta_id)
+                    ->first();
+
+                if (!$deviceIsExist) {
+                    //add
+                    $device = new Device();
+                    $device->qouta_id =  $qouta_id;
+                    $device->device_no =  $deviceNo;
+                    $device->notify_token =  $notifyToken;
+                    $device->status =  true;
+                    $device->save();
+                } else {
+                    //update
+                    $deviceIsExist->qouta_id =  $qouta_id;
+                    $deviceIsExist->device_no =  $deviceNo;
+                    $deviceIsExist->notify_token =  $notifyToken;
+                    $deviceIsExist->status =  true;
+                    $deviceIsExist->save();
+                }
+                //
+
+            }
+
+            return response()->json([
+                'code' => '200',
+                'status' => true,
+                'message' => 'เข้าสู่ระบบสำเร็จ',
+                'data' => $Item,
+                'token' => null,
+            ], 200);
+        } else {
+            return $this->returnError('รหัสผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', 401);
         }
     }
 }

@@ -13,23 +13,17 @@ class ChatController extends Controller
     public function getChat(Request $request)
     {
 
-        $loginBy = $request->login_by;
-
-        if (!isset($loginBy)) {
-            return $this->returnErrorData('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
-        }
-
-        $memberId = $request->member_id;
+        $qoutaId = $request->qouta_id;
         $type = $request->type;
 
         $status = $request->status;
 
-        $Chat = Chat::with('member')
+        $Chat = Chat::with('frammer')
             ->with('chat_msgs');
 
 
-        if (isset($memberId)) {
-            $Chat->where('member_id', $memberId);
+        if (isset($qoutaId)) {
+            $Chat->where('qouta_id', $qoutaId);
         }
 
 
@@ -63,29 +57,24 @@ class ChatController extends Controller
         $start = $request->start;
         $page = $start / $length + 1;
 
-        $loginBy = $request->login_by;
 
-        if (!isset($loginBy)) {
-            return $this->returnErrorData('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
-        }
-
-        $memberId = $request->member_id;
+        $qoutaId = $request->qouta_id;
 
         $type = $request->type;
 
         $status = $request->status;
 
-        $col = array('id', 'room_name', 'member_id', 'type', 'status', 'meeting', 'co_agent', 'created_at', 'updated_at');
+        $col = array('id', 'room_name', 'qouta_id', 'type', 'status', 'meeting', 'co_agent', 'created_at', 'updated_at');
 
-        $orderby = array('', 'room_name', 'member_id', 'meeting', 'type', 'status', 'meeting', 'co_agent', 'created_at', 'updated_at');
+        $orderby = array('', 'room_name', 'qouta_id', 'meeting', 'type', 'status', 'meeting', 'co_agent', 'created_at', 'updated_at');
 
         $d = Chat::select($col)
-            ->with('member')
+            ->with('frammer')
             ->with('chat_msgs');
 
 
-        if (isset($memberId)) {
-            $d->where('member_id', $memberId);
+        if (isset($qoutaId)) {
+            $d->where('qouta_id', $qoutaId);
         }
 
         if (isset($assetId)) {
@@ -155,11 +144,7 @@ class ChatController extends Controller
     public function store(Request $request)
     {
 
-        $loginBy = $request->login_by;
-
-        if (!isset($loginBy)) {
-            return $this->returnErrorData('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
-        }
+        $qoutaId = $request->qouta_id;
 
         DB::beginTransaction();
 
@@ -167,7 +152,7 @@ class ChatController extends Controller
 
             $CHAT = null;
             //check duplicate Asset Chat
-            $checkChat = Chat::where('member_id', $loginBy->id)
+            $checkChat = Chat::where('qouta_id', $qoutaId)
                 ->where('status', 'chat')
                 ->first();
 
@@ -177,8 +162,8 @@ class ChatController extends Controller
 
                 $Chat = new Chat();
 
-                $Chat->room_name = date('Ymdhis') . rand(0000, 9999) . $loginBy->code;
-                $Chat->member_id = $loginBy->id;
+                $Chat->room_name = date('Ymdhis') . rand(0000, 9999) . $qoutaId;
+                $Chat->qouta_id = $qoutaId;
                 $Chat->type = 'vip';
                 $Chat->updated_at = Carbon::now()->toDateTimeString();
 
@@ -191,7 +176,7 @@ class ChatController extends Controller
             //get msg
             $ChatId = $CHAT->id;
 
-            $Chat_msg = Chat_msg::with('member')
+            $Chat_msg = Chat_msg::with('frammer')
                 ->with('chat')
                 ->where('chat_id', $ChatId);
 
@@ -204,14 +189,14 @@ class ChatController extends Controller
                     $Chat_msg[$i]['No'] = $i + 1;
 
                     //positon comment
-                    if ($loginBy->type  == 'member') {
-                        if ($loginBy->id == $Chat_msg[$i]['member_id']) {
+                    if ($qoutaId) {
+                        if ($qoutaId  == $Chat_msg[$i]['qouta_id']) {
                             $Chat_msg[$i]['positon_comment'] = 'Right';
                         } else {
                             $Chat_msg[$i]['positon_comment'] = 'Left';
                         }
                     } else {
-                        if ($Chat_msg[$i]['member_id']) {
+                        if ($Chat_msg[$i]['qouta_id']) {
                             $Chat_msg[$i]['positon_comment'] = 'Left';
                         } else {
                             $Chat_msg[$i]['positon_comment'] = 'Right';
@@ -248,7 +233,7 @@ class ChatController extends Controller
      */
     public function show($id)
     {
-        $Chat = Chat::with('member')
+        $Chat = Chat::with('frammer')
             ->with('chat_msgs')
 
             ->find($id);
@@ -287,11 +272,6 @@ class ChatController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $loginBy = $request->login_by;
-
-        if (!isset($loginBy)) {
-            return $this->returnErrorData('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
-        }
 
         DB::beginTransaction();
 
@@ -333,9 +313,9 @@ class ChatController extends Controller
 
     //         if ($status == 'finish') {
 
-    //             $memberId = $loginBy->id;
+    //             $qoutaId = $loginBy->id;
     //             $pointEventId = 3; //ผู้ซื้อกดปิดดิล
-    //             $this->addMemberPoint($memberId, $pointEventId);
+    //             $this->addMemberPoint($qoutaId, $pointEventId);
 
     //             // //update status co agent
     //             // $Co_agent = Co_agent::where('Chat_id', $id)->first();
@@ -389,7 +369,7 @@ class ChatController extends Controller
     //             //send msg
     //             $Chat_msg = new Chat_msg();
     //             $Chat_msg->Chat_id = $id;
-    //             $Chat_msg->member_id = $loginBy->id;
+    //             $Chat_msg->qouta_id = $loginBy->id;
 
     //             $Chat_msg->message = 'ผู้ขายต้องการปิดดีลของคุณกรุณากดยืนยัน';
     //             $Chat_msg->type = 'close_deal';
@@ -407,7 +387,7 @@ class ChatController extends Controller
     //             //send msg
     //             $Chat_msg = new Chat_msg();
     //             $Chat_msg->Chat_id = $id;
-    //             $Chat_msg->member_id = $loginBy->id;
+    //             $Chat_msg->qouta_id = $loginBy->id;
 
     //             $Chat_msg->message = 'ยินดีด้วย! ปิดดิลสำเร็จ';
     //             $Chat_msg->type = 'close_deal';
@@ -419,17 +399,17 @@ class ChatController extends Controller
 
     //             /////////////////////// add point ////////////////////////////////
     //             //get member in asset chat
-    //             $allmember = Chat::select('member_id')
+    //             $allmember = Chat::select('qouta_id')
     //                 ->where('id', $id)
-    //                 ->groupby('member_id')
+    //                 ->groupby('qouta_id')
     //                 ->get();
 
     //             if ($allmember->isNotEmpty()) {
     //                 for ($i = 0; $i < count($allmember); $i++) {
     //                     //add point
-    //                     $memberId = $allmember[$i]->member_id;
+    //                     $qoutaId = $allmember[$i]->qouta_id;
     //                     $pointEventId = 3; //ผู้ซื้อกดปิดดิล
-    //                     $this->addMemberPoint($memberId, $pointEventId);
+    //                     $this->addMemberPoint($qoutaId, $pointEventId);
     //                 }
     //             }
     //             /////////////////////////////////////////////////////////////////////
@@ -451,7 +431,7 @@ class ChatController extends Controller
     //             //send msg
     //             $Chat_msg = new Chat_msg();
     //             $Chat_msg->Chat_id = $id;
-    //             $Chat_msg->member_id = $loginBy->id;
+    //             $Chat_msg->qouta_id = $loginBy->id;
 
     //             $Chat_msg->message = 'ผู้ซื้อ ปฎิเสธการปิดดิล';
     //             $Chat_msg->type = 'close_deal';
@@ -498,10 +478,10 @@ class ChatController extends Controller
 
     //     try {
 
-    //         $Chat = Chat::with('member')
+    //         $Chat = Chat::with('frammer')
     //             ->with('owner')
     //             ->with(['asset' => function ($query) {
-    //                 $query->with('member');
+    //                 $query->with('frammer');
     //                 $query->with('property_type');
     //                 $query->with('inquiry_type');
     //                 $query->with('property_announcer');
@@ -540,7 +520,7 @@ class ChatController extends Controller
     //             //send msg
     //             $Chat_msg = new Chat_msg();
     //             $Chat_msg->Chat_id = $id;
-    //             $Chat_msg->member_id = $loginBy->id;
+    //             $Chat_msg->qouta_id = $loginBy->id;
 
     //             $Chat_msg->message = 'ผู้ซื้อต้องการนัดหมายคุณดูทรัพย์ ในวันที่ ' . date('d/m/Y', strtotime($date)) . ' เวลา ' . date('H:i', strtotime($date)) . ' น.';
     //             $Chat_msg->type = 'meeting';
@@ -567,7 +547,7 @@ class ChatController extends Controller
     //             //send msg
     //             $Chat_msg = new Chat_msg();
     //             $Chat_msg->Chat_id = $id;
-    //             $Chat_msg->member_id = $loginBy->id;
+    //             $Chat_msg->qouta_id = $loginBy->id;
 
     //             $Chat_msg->message = 'ผู้ขายยืนยันการนัดหมาย ในวันที่ ' . date('d/m/Y', strtotime($strDate)) . ' เวลา ' . date('H:i', strtotime($strDate)) . ' น.';
     //             $Chat_msg->type = 'meeting';
@@ -623,7 +603,7 @@ class ChatController extends Controller
     //             // $endDateTime = $date;
 
 
-    //             // // $email = $Chat->asset->member_id;
+    //             // // $email = $Chat->asset->qouta_id;
     //             // $email = 'boss32099@gmail.com';
 
     //             // $this->sendGoogleCalendar($name, $description, $startDateTime, $endDateTime, $email);
@@ -637,7 +617,7 @@ class ChatController extends Controller
     //             //send msg
     //             $Chat_msg = new Chat_msg();
     //             $Chat_msg->Chat_id = $id;
-    //             $Chat_msg->member_id = $loginBy->id;
+    //             $Chat_msg->qouta_id = $loginBy->id;
 
     //             $Chat_msg->message = 'ผู้ขาย ปฎิเสธการนัดหมาย';
     //             $Chat_msg->type = 'meeting';

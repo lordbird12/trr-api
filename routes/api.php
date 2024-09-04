@@ -46,6 +46,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [LoginController::class, 'login']);
 
 Route::post('/check_login', [LoginController::class, 'checkLogin']);
+Route::post('/login_app', [LoginController::class, 'loginApp']);
 
 //user
 Route::post('/create_admin', [UserController::class, 'createUserAdmin']);
@@ -53,7 +54,7 @@ Route::post('/forgot_password_user', [UserController::class, 'ForgotPasswordUser
 
 // //controller
 Route::post('/upload_images', [Controller::class, 'uploadImages']);
-Route::post('/upload_file', [Controller::class, 'uploadFile']);
+Route::post('/upload_file', [Controller::class, 'uploadFiles']);
 
 //user
 Route::resource('user', UserController::class);
@@ -208,18 +209,16 @@ Route::post('/notify_log_user_page', [NotifyLogUserController::class, 'Page']);
 Route::get('/get_notify_log_user', [NotifyLogUserController::class, 'get']);
 Route::get('/testNoti', [Controller::class, 'testNoti']);
 
+//chat
+Route::resource('chat', ChatController::class);
+Route::post('/get_chat', [ChatController::class, 'getChat']);
+Route::post('/chat_page', [ChatController::class, 'ChatPage']);
 
+//chat msg
+Route::resource('chat_msg', ChatMsgController::class);
+Route::post('/get_chat_msg', [ChatMsgController::class, 'getChatMsg']);
+Route::post('/chat_msg_page', [ChatMsgController::class, 'ChatMsgPage']);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Route::group(['middleware' => 'checkjwt'], function () {
-    //chat
-    Route::resource('chat', ChatController::class);
-    Route::post('/get_chat', [ChatController::class, 'getChat']);
-    Route::post('/chat_page', [ChatController::class, 'ChatPage']);
-
-    //chat msg
-    Route::resource('chat_msg', ChatMsgController::class);
-    Route::post('/get_chat_msg', [ChatMsgController::class, 'getChatMsg']);
-    Route::post('/chat_msg_page', [ChatMsgController::class, 'ChatMsgPage']);
-});
+Route::group(['middleware' => 'checkjwt'], function () {});

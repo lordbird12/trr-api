@@ -36,8 +36,8 @@ class Chat_msg extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function member()
+    public function frammer()
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(Frammers::class, 'qouta_id', 'qouta_id');
     }
 }

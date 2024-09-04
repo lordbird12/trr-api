@@ -95,7 +95,9 @@ class Controller extends BaseController
     public function sendNotifyAll($title, $body, $target_id, $type)
     {
 
-        $device =  Device::with('user')->get();
+        $device =  Device::with('user')
+            ->with('frammer')
+            ->get();
 
         $notiToken = [];
         $notifyUser = [];
@@ -103,7 +105,8 @@ class Controller extends BaseController
         for ($i = 0; $i < count($device); $i++) {
 
             $notiToken[] = $device[$i]->notify_token;
-            $notifyUser[] = $device[$i]->user_id;
+            // $notifyUser[] = $device[$i]->user_id;
+            $notifyUser[] = $device[$i]->qouta_id;
         }
 
         $FcmToken = array_values(array_unique($notiToken));
@@ -133,11 +136,12 @@ class Controller extends BaseController
         $this->addNotifyLog($title, $body, $target_id, $type, $notifyUser);
     }
 
-    public function sendNotify($title, $body, $target_id, $type, $user_id)
+    public function sendNotify($title, $body, $target_id, $type, $qouta_id)
     {
 
         $device =  Device::with('user')
-            ->where('user_id', $user_id)
+            ->with('frammer')
+            ->where('qouta_id', $qouta_id)
             ->get();
 
         $notiToken = [];
@@ -146,7 +150,8 @@ class Controller extends BaseController
         for ($i = 0; $i < count($device); $i++) {
 
             $notiToken[] = $device[$i]->notify_token;
-            $notifyUser[] = $device[$i]->user_id;
+            // $notifyUser[] = $device[$i]->user_id;
+            $notifyUser[] = $device[$i]->qouta_id;
         }
 
         $FcmToken = array_values(array_unique($notiToken));
@@ -175,21 +180,22 @@ class Controller extends BaseController
         $this->addNotifyLog($title, $body, $target_id, $type, $NotifyUser);
     }
 
-    public function sendNotifyMultiUser($title, $body, $target_id, $type, $userId)
+    public function sendNotifyMultiUser($title, $body, $target_id, $type, $qoutaId)
     {
         $notiToken = [];
         $notifyUser = [];
 
-        for ($j = 0; $j < count($userId); $j++) {
+        for ($j = 0; $j < count($qoutaId); $j++) {
 
             $device =  Device::with('user')
-                ->where('user_id', $userId[$j])
+                ->with('frammer')
+                ->where('qouta_id', $qoutaId[$j])
                 ->get();
 
             for ($i = 0; $i < count($device); $i++) {
 
                 $notiToken[] = $device[$i]->notify_token;
-                $notifyUser[] = $device[$i]->user_id;
+                $notifyUser[] = $device[$i]->qouta_id;
             }
         }
 
@@ -247,7 +253,8 @@ class Controller extends BaseController
         for ($i = 0; $i < count($result); $i++) {
             $Notify_log_user = new  Notify_log_user();
             $Notify_log_user->notify_log_id =  $Notify_log->id;
-            $Notify_log_user->user_id = $result[$i];
+            // $Notify_log_user->user_id = $result[$i];
+            $Notify_log_user->qouta_id = $result[$i];
             $Notify_log_user->read = false;
 
             $Notify_log_user->save();
@@ -319,24 +326,24 @@ class Controller extends BaseController
         return $path . $input['imagename'];
     }
 
-    // public function uploadFile(Request $request)
-    // {
+    public function uploadFiles(Request $request)
+    {
 
-    //     $file = $request->file;
-    //     $path = $request->path;
+        $file = $request->file;
+        $path = $request->path;
 
-    //     $input['filename'] = time() . '.' . $file->extension();
+        $input['filename'] = time() . '.' . $file->extension();
 
-    //     $destinationPath = public_path('/file_thumbnail');
-    //     if (!File::exists($destinationPath)) {
-    //         File::makeDirectory($destinationPath, 0777, true);
-    //     }
+        $destinationPath = public_path('/file_thumbnail');
+        if (!File::exists($destinationPath)) {
+            File::makeDirectory($destinationPath, 0777, true);
+        }
 
-    //     $destinationPath = public_path($path);
-    //     $file->move($destinationPath, $input['filename']);
+        $destinationPath = public_path($path);
+        $file->move($destinationPath, $input['filename']);
 
-    //     return $path . $input['filename'];
-    // }
+        return $this->returnSuccess('ดำเนินการสำเร็จ', $path . $input['filename']);
+    }
 
     public function uploadFile($file, $path)
     {
@@ -429,6 +436,16 @@ class Controller extends BaseController
         $runNumber = $prefix . $Number;
 
         return $runNumber;
+    }
+
+    public function isURL($url)
+    {
+        $url = filter_var($url, FILTER_SANITIZE_URL);
+        if (!filter_var($url, FILTER_VALIDATE_URL) === false) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 
