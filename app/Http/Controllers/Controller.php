@@ -226,7 +226,7 @@ class Controller extends BaseController
     public function testNoti()
     {
         $message = CloudMessage::fromArray([
-            'token' => 'cxb4Kp81TFqlZ7svhu0k4X:APA91bHl_HzAZmhH5TBOm9y2GybdtScb3Dsb704jiTZf1juenRytc0XVRDj5eat-WWW2vBMZU-5iTb-jNVRR2Djkf-3eHYUXzx6ImDAlpLWqllOr_j6bw2kn8D3d-vJzVYa5ijWt358B',
+            'token' => 'enDG1wfxTNOvmbMLBgZe2x:APA91bEXjX_JYPiGGJIdWj7GF1y52ZTPuhGkeNDHKmH9U8W6YQjJxx3P2PIGx1w_8hdt3Uh9anGHKxJx89jTFhHGAGxJE_0dsmXJBU1Uu80TTBh8RV1OV-Dr7jCoulGs7qRpV3cKoVPZ',
             'notification' => [
                 'title' => 'ใช้ได้ยังพี่ค้อ',
                 'body' => 'ใช้ได้ยังพี่ค้อ'
