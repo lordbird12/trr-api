@@ -16,7 +16,7 @@ class CheckJWT
      * @return mixed
      */
 
-    public $key = "suzuki_key";
+    public $key = "trr_key";
 
     public function handle($request, Closure $next)
     {
