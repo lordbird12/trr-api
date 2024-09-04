@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ChatMsgController;
 use App\Http\Controllers\ContractorController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\CountryController;
@@ -206,8 +208,18 @@ Route::post('/notify_log_user_page', [NotifyLogUserController::class, 'Page']);
 Route::get('/get_notify_log_user', [NotifyLogUserController::class, 'get']);
 Route::get('/testNoti', [Controller::class, 'testNoti']);
 
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Route::group(['middleware' => 'checkjwt'], function () {});
+Route::group(['middleware' => 'checkjwt'], function () {
+    //chat
+    Route::resource('chat', ChatController::class);
+    Route::post('/get_chat', [ChatController::class, 'getChat']);
+    Route::post('/chat_page', [ChatController::class, 'ChatPage']);
 
-
+    //chat msg
+    Route::resource('chat_msg', ChatMsgController::class);
+    Route::post('/get_chat_msg', [ChatMsgController::class, 'getChatMsg']);
+    Route::post('/chat_msg_page', [ChatMsgController::class, 'ChatMsgPage']);
+});
