@@ -28,6 +28,7 @@ use App\Http\Controllers\CompanyDetailController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotifyLogUserController;
 use App\Http\Controllers\RainImageController;
+use App\Http\Controllers\NotiSettingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -208,6 +209,8 @@ Route::post('/get_incomededuct', [DashboardController::class, 'incomededuct']);
 Route::post('/notify_log_user_page', [NotifyLogUserController::class, 'Page']);
 Route::get('/get_notify_log_user', [NotifyLogUserController::class, 'get']);
 Route::get('/testNoti', [Controller::class, 'testNoti']);
+Route::post('/notify_alert', [NotifyLogUserController::class, 'notiAlert']);
+
 
 //chat
 Route::resource('chat', ChatController::class);
@@ -218,6 +221,11 @@ Route::post('/chat_page', [ChatController::class, 'ChatPage']);
 Route::resource('chat_msg', ChatMsgController::class);
 Route::post('/get_chat_msg', [ChatMsgController::class, 'getChatMsg']);
 Route::post('/chat_msg_page', [ChatMsgController::class, 'ChatMsgPage']);
+
+// NotiSetting
+Route::resource('noti_setting', NotiSettingController::class);
+Route::post('/noti_setting_page', [NotiSettingController::class, 'getPage']);
+Route::get('/get_noti_setting/{frammer_id}', [NotiSettingController::class, 'getList']);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

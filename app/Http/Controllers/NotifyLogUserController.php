@@ -104,4 +104,20 @@ class NotifyLogUserController extends Controller
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $d);
     }
+
+    public function notiAlert(Request $request)
+    {
+        if (!isset($request->title)) {
+            return $this->returnErrorData('[title] Data Not Found', 404);
+        } else  if (!isset($request->body)) {
+            return $this->returnErrorData('[body] Data Not Found', 404);
+        }
+
+        //send notification user
+        $title = $request->title;
+        $body = $request->body;
+        $target_id = null;
+        $type = 'all';
+        $this->sendNotifyAll($title, $body, $target_id, $type);
+    }
 }
