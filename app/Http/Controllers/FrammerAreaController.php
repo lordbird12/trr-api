@@ -273,4 +273,25 @@ class FrammerAreaController extends Controller
             return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
         }
     }
+
+    public function updateImageArea(Request $request, $id)
+    {
+
+        DB::beginTransaction();
+
+        try {
+
+            $Item = FrammerArea::find($id);
+            $Item->image = $request->image;
+
+            $Item->save();
+            //
+
+            DB::commit();
+            return $this->returnUpdate('ดำเนินการสำเร็จ');
+        } catch (\Throwable $e) {
+            DB::rollback();
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
 }
