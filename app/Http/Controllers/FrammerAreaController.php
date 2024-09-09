@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class FrammerAreaController extends Controller
 {
@@ -228,6 +229,46 @@ class FrammerAreaController extends Controller
         } catch (\Throwable $e) {
 
             DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+
+    public function getPlotList(Request $request)
+    {
+
+        $FacID = $request->FacID;
+        $QuotaID = $request->QuotaID;
+        $Current_year = $request->Current_year;
+
+        try {
+            $response = Http::withHeaders([
+                'Accept' => 'application/json',
+            ])->post('https://canegrow.com:28099/api/cumulative_rain', [
+                'FacID' => "1",
+                'QuotaID' => "327",
+                'Current_year' => "2024",
+            ]);
+
+
+            if ($response->successful()) {
+                $res = $response->body();
+
+                $data = json_decode($res); //
+
+                for ($i = 0; $i < count($data->data); $i++) {
+
+                    $FrammerArea = FrammerArea::where('area', $data->data[$i]->plot_no)->first();
+
+                    $data->data[$i]->frammer_area = $FrammerArea;
+                }
+
+                return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
+            } else {
+                return $this->returnErrorData('ไม่พบข้อมูล api ', 404);
+            }
+        } catch (\Throwable $e) {
+
 
             return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
         }

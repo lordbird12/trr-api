@@ -127,6 +127,8 @@ Route::post('/update_news', [NewsController::class, 'updateData']);
 Route::resource('frammer_area', FrammerAreaController::class);
 Route::post('/frammer_area_page', [FrammerAreaController::class, 'getPage']);
 Route::post('/get_frammer_area', [FrammerAreaController::class, 'getList']);
+Route::post('/get_plot_list', [FrammerAreaController::class, 'getPlotList']);
+
 
 // Framer Area Mix
 Route::resource('frammer_area_mix', FrammerAreaMixController::class);
