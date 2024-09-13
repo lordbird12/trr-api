@@ -274,17 +274,30 @@ class FrammerAreaController extends Controller
         }
     }
 
-    public function updateImageArea(Request $request, $id)
+    public function updateImageArea(Request $request)
     {
 
         DB::beginTransaction();
 
         try {
 
-            $Item = FrammerArea::find($id);
-            $Item->image = $request->image;
+            $frammer_id =  $request->frammer_id;
+            $area =  $request->area;
 
-            $Item->save();
+            $Item = FrammerArea::where('area', $area)->first();
+            if( $Item){
+                $Item->image = $request->image;
+
+                $Item->save();
+            }else{
+                $addItem = new FrammerArea();
+                $addItem->frammer_id = $frammer_id;
+                $addItem->area = $area;
+                $addItem->image = $request->image;
+                $addItem->save();
+
+            }
+
             //
 
             DB::commit();

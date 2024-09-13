@@ -128,7 +128,7 @@ Route::resource('frammer_area', FrammerAreaController::class);
 Route::post('/frammer_area_page', [FrammerAreaController::class, 'getPage']);
 Route::post('/get_frammer_area', [FrammerAreaController::class, 'getList']);
 Route::post('/get_plot_list', [FrammerAreaController::class, 'getPlotList']);
-Route::put('/update_image_area/{id}', [FrammerAreaController::class, 'updateImageArea']);
+Route::post('/update_image_area', [FrammerAreaController::class, 'updateImageArea']);
 
 
 
