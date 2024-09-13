@@ -287,7 +287,6 @@ class FrammerAreaController extends Controller
             $Item = FrammerArea::where('area', $area)->first();
             if( $Item){
                 $Item->image = $request->image;
-
                 $Item->save();
             }else{
                 $addItem = new FrammerArea();
