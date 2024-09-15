@@ -8,6 +8,7 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Models\Log;
 
 class FrammerAreaMixEventTypeController extends Controller
 {
@@ -214,5 +215,40 @@ class FrammerAreaMixEventTypeController extends Controller
 
             return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
         }
+    }
+
+    public function graphCircle()
+    {
+        $Item = FrammerAreaMixEventType::get()->toarray();
+
+        if (!empty($Item)) {
+
+            for ($i = 0; $i < count($Item); $i++) {
+                $Item[$i]['No'] = $i + 1;
+                $Item[$i]['percent'] = 0;
+            }
+        }
+
+        $currentYear = Carbon::now()->year;
+        $currentMonth = Carbon::now()->month;
+        $count = Log::where('type', 'loginapp')
+        ->whereYear('created_at', $currentYear)
+        ->whereMonth('created_at', $currentMonth)
+        ->count();
+
+        if($count){
+            $data = [
+                "views" => $count,
+                "graph" => $Item
+            ];
+        }else{
+            $data = [
+                "views" => 0,
+                "graph" => $Item
+            ];
+        }
+       
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
     }
 }
