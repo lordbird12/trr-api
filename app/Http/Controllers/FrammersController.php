@@ -290,9 +290,16 @@ class FrammersController extends Controller
     {
         $qoutas = $request->qoutas;
         $year = $request->year;
-        dd($qoutas);
-
-        $Item = Frammers::where('year',$year)->get();
+       
+        if (is_array($quotas) && !empty($quotas)) {
+            // Filter the Frammers by year and quotas
+            $items = Frammers::where('year', $year)
+                ->whereIn('qouta_id', $quotas) // Replace 'quota_column_name' with the actual column name
+                ->get();
+        } else {
+            // If no quotas provided or not an array, just filter by year
+            $items = Frammers::where('year', $year)->get();
+        }
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
