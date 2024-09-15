@@ -286,7 +286,7 @@ class FrammersController extends Controller
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
 
-    public function getEventYear()
+    public function getEventYear(Request $request)
     {
         $qoutas = $request->qoutas;
         $year = $request->year;
