@@ -29,6 +29,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotifyLogUserController;
 use App\Http\Controllers\RainImageController;
 use App\Http\Controllers\NotiSettingController;
+use App\Http\Controllers\FaqController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -230,6 +231,12 @@ Route::post('/chat_msg_page', [ChatMsgController::class, 'ChatMsgPage']);
 Route::resource('noti_setting', NotiSettingController::class);
 Route::post('/noti_setting_page', [NotiSettingController::class, 'getPage']);
 Route::get('/get_noti_setting/{frammer_id}', [NotiSettingController::class, 'getList']);
+
+
+// Faq
+Route::resource('faq', FaqController::class);
+Route::post('/faq_page', [FaqController::class, 'getPage']);
+Route::get('/get_faq', [FaqController::class, 'getList']);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
