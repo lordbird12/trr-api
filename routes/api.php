@@ -238,6 +238,9 @@ Route::resource('faq', FaqController::class);
 Route::post('/faq_page', [FaqController::class, 'getPage']);
 Route::get('/get_faq', [FaqController::class, 'getList']);
 
+Route::post('/frammer_events', [FrammersController::class, 'getEventYear']);
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Route::group(['middleware' => 'checkjwt'], function () {});

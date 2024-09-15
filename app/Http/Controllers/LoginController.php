@@ -254,6 +254,13 @@ class LoginController extends Controller
 
             }
 
+              //log
+              $userId = $deviceNo;
+              $type = 'loginapp';
+              $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $request->name;
+              $this->Log($userId, $description, $type);
+              //
+
             return response()->json([
                 'code' => '200',
                 'status' => true,
