@@ -10,11 +10,9 @@ use Illuminate\Support\Facades\DB;
 class FaqController extends Controller
 {
 
-    public function getList($gid, $qid)
+    public function getList()
     {
-        $Item = Faq::where('group_id', $gid)
-            ->where('question_id', $qid)
-            ->get();
+        $Item = Faq::get();
 
         if (!empty($Item)) {
 
