@@ -363,7 +363,7 @@ class FrammersController extends Controller
                         ->where('selectdate', 'like', $date . '%')
                         ->first();
                         if($item){
-                            $months[$numberToShortMonthMapping[$key1]] = true;
+                            $months[$numberToShortMonthMapping[$n]] = true;
                         }
                     }
                   
