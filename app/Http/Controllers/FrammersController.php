@@ -299,18 +299,18 @@ class FrammersController extends Controller
 
             foreach ($quotas as $key => $value) {
                 $months = [
-                    "1" => false,
-                    "2" => false,
-                    "3" => false,
-                    "4" => false,
-                    "5" => false,
-                    "6" => false,
-                    "7" => false,
-                    "8" => false,
-                    "9" => false,
-                    "10" => false,
-                    "11" => false,
-                    "12" => false,
+                    "jan" => false,
+                    "feb" => false,
+                    "mar" => false,
+                    "apr" => false,
+                    "may" => false,
+                    "jun" => false,
+                    "jul" => false,
+                    "aug" => false,
+                    "sep" => false,
+                    "oct" => false,
+                    "nov" => false,
+                    "dec" => false,
                 ];
             
                 // // Set the month corresponding to the quota value to true
@@ -320,6 +320,37 @@ class FrammersController extends Controller
 
                 // if($frammer){
                 $n = 0;
+
+                $shortMonthMapping = [
+                    "jan" => 1,
+                    "feb" => 2,
+                    "mar" => 3,
+                    "apr" => 4,
+                    "may" => 5,
+                    "jun" => 6,
+                    "jul" => 7,
+                    "aug" => 8,
+                    "sep" => 9,
+                    "oct" => 10,
+                    "nov" => 11,
+                    "dec" => 12
+                ];
+
+                $numberToShortMonthMapping = [
+                    1 => "jan",
+                    2 => "feb",
+                    3 => "mar",
+                    4 => "apr",
+                    5 => "may",
+                    6 => "jun",
+                    7 => "jul",
+                    8 => "aug",
+                    9 => "sep",
+                    10 => "oct",
+                    11 => "nov",
+                    12 => "dec"
+                ];
+
                     foreach ($months as $key1 => $value1) {
                         $n++;
                         $m = $n;
@@ -332,7 +363,7 @@ class FrammersController extends Controller
                         ->where('selectdate', 'like', $date . '%')
                         ->first();
                         if($item){
-                            $months[$key1] = true;
+                            $months[$numberToShortMonthMapping[$key1]] = true;
                         }
                     }
                   
