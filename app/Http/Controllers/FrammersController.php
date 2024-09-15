@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Frammers;
 use App\Models\Country;
 use App\Models\Province;
+use App\Models\FactoryActivity;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -288,20 +289,74 @@ class FrammersController extends Controller
 
     public function getEventYear(Request $request)
     {
-        $qoutas = $request->qoutas;
+        $quotas = $request->quotas;
         $year = $request->year;
-       
+        $items = [];
+        $data = [];
         if (is_array($quotas) && !empty($quotas)) {
             // Filter the Frammers by year and quotas
-            $items = Frammers::where('year', $year)
-                ->whereIn('qouta_id', $quotas) // Replace 'quota_column_name' with the actual column name
-                ->get();
-        } else {
-            // If no quotas provided or not an array, just filter by year
-            $items = Frammers::where('year', $year)->get();
+           
+
+            foreach ($quotas as $key => $value) {
+                $months = [
+                    "1" => false,
+                    "2" => false,
+                    "3" => false,
+                    "4" => false,
+                    "5" => false,
+                    "6" => false,
+                    "7" => false,
+                    "8" => false,
+                    "9" => false,
+                    "10" => false,
+                    "11" => false,
+                    "12" => false,
+                ];
+            
+                // // Set the month corresponding to the quota value to true
+
+                // $frammer = Frammers::where('qouta_id', $value) // Replace 'quota_column_name' with the actual column name
+                // ->first();
+
+                // if($frammer){
+                $n = 0;
+                    foreach ($months as $key1 => $value1) {
+                        $n++;
+                        $m = $n;
+                        if(strlen($n) == 1){
+                            $m = "0".$n;
+                        }
+                        $date = $year.'-'.$m;
+                     
+                        $item = FactoryActivity::where('frammer_id', $value)
+                        ->where('selectdate', 'like', $date . '%')
+                        ->first();
+                        if($item){
+                            $months[$key1] = true;
+                        }
+                    }
+                  
+                // }
+            
+                // Create the array to be pushed to $data
+                $arr = [
+                    "quota_id" => $value,
+                    "months" => $months
+                ];
+            
+                // Push the $arr to $data
+                array_push($data, $arr);
+            }
         }
 
-        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+        // if (is_array($items) && !empty($items)) {
+        //     foreach ($items as $key => $value) {
+        //         $items = FactoryActivity::whereIn('qouta_id', $quotas) // Replace 'quota_column_name' with the actual column name
+        //         ->get();
+        //     }
+        // }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
     }
 
 }
