@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\FrammerAreaMixEventType;
+use App\Models\Feature;
 use Carbon\Carbon;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Illuminate\Http\Request;
@@ -239,7 +240,7 @@ class FrammerAreaMixEventTypeController extends Controller
             'December' => 'ธันวาคม',
         ];
 
-        $Item = FrammerAreaMixEventType::get()->toarray();
+        $Item = Feature::get()->toarray();
 
         if (!empty($Item)) {
 
