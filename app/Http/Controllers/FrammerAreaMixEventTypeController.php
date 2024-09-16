@@ -219,6 +219,26 @@ class FrammerAreaMixEventTypeController extends Controller
 
     public function graphCircle()
     {
+        setlocale(LC_TIME, 'th_TH.UTF-8');
+
+        // Get the current month in English
+        $currentMonth = strftime('%B');
+
+        $thaiMonths = [
+            'January' => 'มกราคม',
+            'February' => 'กุมภาพันธ์',
+            'March' => 'มีนาคม',
+            'April' => 'เมษายน',
+            'May' => 'พฤษภาคม',
+            'June' => 'มิถุนายน',
+            'July' => 'กรกฎาคม',
+            'August' => 'สิงหาคม',
+            'September' => 'กันยายน',
+            'October' => 'ตุลาคม',
+            'November' => 'พฤศจิกายน',
+            'December' => 'ธันวาคม'
+        ];
+
         $Item = FrammerAreaMixEventType::get()->toarray();
 
         if (!empty($Item)) {
@@ -236,9 +256,12 @@ class FrammerAreaMixEventTypeController extends Controller
         ->whereMonth('created_at', $currentMonth)
         ->count();
 
+        $thaiMonth = $thaiMonths[$currentMonth];
+
         if($count){
             $data = [
                 "views" => $count,
+                "month" => $thaiMonth,
                 "graph" => $Item
             ];
         }else{
