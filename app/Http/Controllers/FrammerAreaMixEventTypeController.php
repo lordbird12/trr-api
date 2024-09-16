@@ -224,7 +224,7 @@ class FrammerAreaMixEventTypeController extends Controller
         // Get the current month in English
         $currentMonth = strftime('%B');
 
-        $thaiMonths = [
+        $months = [
             'January' => 'มกราคม',
             'February' => 'กุมภาพันธ์',
             'March' => 'มีนาคม',
@@ -236,7 +236,7 @@ class FrammerAreaMixEventTypeController extends Controller
             'September' => 'กันยายน',
             'October' => 'ตุลาคม',
             'November' => 'พฤศจิกายน',
-            'December' => 'ธันวาคม'
+            'December' => 'ธันวาคม',
         ];
 
         $Item = FrammerAreaMixEventType::get()->toarray();
@@ -255,8 +255,8 @@ class FrammerAreaMixEventTypeController extends Controller
         ->whereYear('created_at', $currentYear)
         ->whereMonth('created_at', $currentMonth)
         ->count();
-
-        $thaiMonth = $thaiMonths[$currentMonth];
+        $currentMonth = date('F');
+        $thaiMonth = $months[$currentMonth];
 
         if($count){
             $data = [
