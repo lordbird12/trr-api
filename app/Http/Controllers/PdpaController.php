@@ -16,7 +16,17 @@ class PdpaController extends Controller
     {
         $Item = Pdpa::where('status','Y')->first();
 
-        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+        if($Item){
+            $check = PdpaRegister::where('pdpa_id',$Item->id)
+            ->where('quota_id',$id)
+            ->first();
+        }
+     
+        if($check){
+            return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', null);
+        }else{
+            return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+        }
     }
 
     public function getPage(Request $request)
