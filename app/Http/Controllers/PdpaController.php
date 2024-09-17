@@ -140,7 +140,7 @@ class PdpaController extends Controller
 
                 $No = $No + 1;
                 $d[$i]->No = $No;
-                $d[$i]->frmamer = Frammers::where('quota_id',$d[$i]->quota_id)->first();
+                $d[$i]->frmamer = Frammers::where('qouta_id',$d[$i]->quota_id)->first();
             }
         }
 
