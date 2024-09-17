@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
+use App\Models\Frammers;
 
 class PdpaController extends Controller
 {
@@ -81,6 +82,65 @@ class PdpaController extends Controller
 
                 $No = $No + 1;
                 $d[$i]->No = $No;
+            }
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $d);
+    }
+
+    public function getPageRegister(Request $request)
+    {
+        $columns = $request->columns;
+        $length = $request->length;
+        $order = $request->order;
+        $search = $request->search;
+        $start = $request->start;
+        $page = $start / $length + 1;
+
+        $pdpa_id = $request->pdpa_id;
+
+        $col = array('id', 'pdpa_id', 'quota_id', 'create_by', 'update_by', 'created_at', 'updated_at');
+
+        $orderby = array('', 'pdpa_id', 'quota_id', 'create_by', 'update_by');
+
+        $D = Pdpa::select($col);
+
+        if (isset($pdpa_id)) {
+            $D->where('pdpa_id', $pdpa_id);
+        }
+
+        if ($orderby[$order[0]['column']]) {
+            $D->orderby($orderby[$order[0]['column']], $order[0]['dir']);
+        }
+
+        if ($search['value'] != '' && $search['value'] != null) {
+
+            $D->Where(function ($query) use ($search, $col) {
+
+                //search datatable
+                $query->orWhere(function ($query) use ($search, $col) {
+                    foreach ($col as &$c) {
+                        $query->orWhere($c, 'like', '%' . $search['value'] . '%');
+                    }
+                });
+
+                //search with
+                // $query = $this->withPermission($query, $search);
+            });
+        }
+
+        $d = $D->paginate($length, ['*'], 'page', $page);
+
+        if ($d->isNotEmpty()) {
+
+            //run no
+            $No = (($page - 1) * $length);
+
+            for ($i = 0; $i < count($d); $i++) {
+
+                $No = $No + 1;
+                $d[$i]->No = $No;
+                $d[$i]->frmamer = Frammers::where('quota_id',$d[$i]->quota_id)->first();
             }
         }
 
