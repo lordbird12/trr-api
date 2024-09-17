@@ -30,6 +30,7 @@ use App\Http\Controllers\NotifyLogUserController;
 use App\Http\Controllers\RainImageController;
 use App\Http\Controllers\NotiSettingController;
 use App\Http\Controllers\FaqController;
+use App\Http\Controllers\PdpaController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -241,6 +242,11 @@ Route::get('/get_faq', [FaqController::class, 'getList']);
 Route::post('/frammer_events', [FrammersController::class, 'getEventYear']);
 
 Route::get('/get_graph_circle', [FrammerAreaMixEventTypeController::class, 'graphCircle']);
+
+// Country
+Route::resource('pdpa', PdpaController::class);
+Route::post('/pdpa_page', [PdpaController::class, 'getPage']);
+Route::get('/get_pdpa', [PdpaController::class, 'getList']);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
