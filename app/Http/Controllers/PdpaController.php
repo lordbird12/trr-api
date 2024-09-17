@@ -11,7 +11,7 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class PdpaController extends Controller
 {
-    public function getList()
+    public function getList($id)
     {
         $Item = Pdpa::where('status','Y')->first();
 
@@ -205,6 +205,8 @@ class PdpaController extends Controller
             DB::beginTransaction();
 
         try {
+            Pdpa::query()->update(['status' => 'N']);
+
             $Item = Pdpa::find($id);
             $Item->title = $title;
             $Item->detail = $detail;

@@ -246,7 +246,7 @@ Route::get('/get_graph_circle', [FrammerAreaMixEventTypeController::class, 'grap
 // Country
 Route::resource('pdpa', PdpaController::class);
 Route::post('/pdpa_page', [PdpaController::class, 'getPage']);
-Route::get('/get_pdpa', [PdpaController::class, 'getList']);
+Route::get('/get_pdpa/{id}', [PdpaController::class, 'getList']);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
