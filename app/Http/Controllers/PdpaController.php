@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pdpa;
+use App\Models\PdpaRegister;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -252,6 +253,43 @@ class PdpaController extends Controller
             //log
             $userId = "admin";
             $type = 'ลบ PDPA';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnUpdate('ดำเนินการสำเร็จ');
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+
+
+    public function registerPDPA(Request $request)
+    {
+        if (!isset($request->pdpa_id)) {
+            return $this->returnErrorData('[pdpa_id] Data Not Found', 404);
+        } else  if (!isset($request->quota_id)) {
+            return $this->returnErrorData('[quota_id] Data Not Found', 404);
+        }
+
+        DB::beginTransaction();
+
+        try {
+
+            $Item = new PdpaRegister();
+            $Item->pdpa_id = $request->pdpa_id;
+            $Item->quota_id = $request->quota_id;
+
+            $Item->save();
+
+            //log
+            $userId = "admin";
+            $type = 'บันทึกสถานะ PDPA';
             $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
             $this->Log($userId, $description, $type);
             //

@@ -248,6 +248,8 @@ Route::resource('pdpa', PdpaController::class);
 Route::post('/pdpa_page', [PdpaController::class, 'getPage']);
 Route::get('/get_pdpa/{id}', [PdpaController::class, 'getList']);
 
+Route::post('/register_pdpa', [PdpaController::class, 'registerPDPA']);
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Route::group(['middleware' => 'checkjwt'], function () {});

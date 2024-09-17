@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePdpasTable extends Migration
+class CreatePdpaRgistersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,13 @@ class CreatePdpasTable extends Migration
      */
     public function up()
     {
-        Schema::create('pdpas', function (Blueprint $table) {
+        Schema::create('pdpa_registers', function (Blueprint $table) {
             $table->increments('id');
             
-            $table->string('code', 255)->charset('utf8');
+            $table->integer('feature_id')->unsigned()->index();
+            $table->foreign('feature_id')->references('id')->on('features')->onDelete('cascade');
 
-            $table->text('titie')->charset('utf8')->nullable();
-            $table->text('detail')->charset('utf8')->nullable();
-
-            $table->enum('status', ['Y', 'N'])->charset('utf8')->default('N');
+            $table->string('quota_id', 100)->charset('utf8');
 
             $table->string('create_by', 100)->charset('utf8')->nullable();
             $table->string('update_by', 100)->charset('utf8')->nullable();
@@ -38,6 +36,6 @@ class CreatePdpasTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('pdpas');
+        Schema::dropIfExists('pdpa_rgisters');
     }
 }
