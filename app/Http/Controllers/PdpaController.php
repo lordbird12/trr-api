@@ -103,7 +103,7 @@ class PdpaController extends Controller
 
         $orderby = array('', 'pdpa_id', 'quota_id', 'create_by', 'update_by');
 
-        $D = Pdpa::select($col);
+        $D = PdpaRegister::select($col);
 
         if (isset($pdpa_id)) {
             $D->where('pdpa_id', $pdpa_id);
