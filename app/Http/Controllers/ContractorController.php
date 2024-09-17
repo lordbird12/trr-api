@@ -128,6 +128,8 @@ class ContractorController extends Controller
         }
 
         if (isset($feature_id)) {
+            $this->FeatureViews($feature_id);
+
             $features = FeatureContractor::where('feature_id', $feature_id)->get();
 
             $arr = [];

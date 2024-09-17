@@ -8,6 +8,7 @@ use App\Models\Inquiry_type;
 use App\Models\Log;
 use App\Models\Notify_log;
 use App\Models\Notify_log_user;
+use App\Models\FeatureView;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -798,5 +799,12 @@ class Controller extends BaseController
         } catch (\Throwable $e) {
             return false;
         }
+    }
+
+    public function FeatureViews($featureId)
+    {
+        $Item = new FeatureView();
+        $Item->feature_id = $featureId;
+        $Item->save();
     }
 }
