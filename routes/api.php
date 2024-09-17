@@ -242,6 +242,7 @@ Route::get('/get_faq', [FaqController::class, 'getList']);
 Route::post('/frammer_events', [FrammersController::class, 'getEventYear']);
 
 Route::get('/get_graph_circle', [FrammerAreaMixEventTypeController::class, 'graphCircle']);
+Route::get('/get_graph_register', [FrammerAreaMixEventTypeController::class, 'graphRegister']);
 
 // Country
 Route::resource('pdpa', PdpaController::class);

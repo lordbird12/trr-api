@@ -275,4 +275,112 @@ class FrammerAreaMixEventTypeController extends Controller
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
     }
+
+    public function graphRegister()
+    {
+        setlocale(LC_TIME, 'th_TH.UTF-8');
+
+        // Get the current month in English
+        $currentMonth = strftime('%B');
+
+        $months = [
+            'January' => 'มกราคม',
+            'February' => 'กุมภาพันธ์',
+            'March' => 'มีนาคม',
+            'April' => 'เมษายน',
+            'May' => 'พฤษภาคม',
+            'June' => 'มิถุนายน',
+            'July' => 'กรกฎาคม',
+            'August' => 'สิงหาคม',
+            'September' => 'กันยายน',
+            'October' => 'ตุลาคม',
+            'November' => 'พฤศจิกายน',
+            'December' => 'ธันวาคม',
+        ];
+
+        $Item = Feature::get()->toarray();
+
+        if (!empty($Item)) {
+
+            for ($i = 0; $i < count($Item); $i++) {
+                $Item[$i]['No'] = $i + 1;
+                $Item[$i]['percent'] = 0;
+            }
+        }
+
+        $currentYear = Carbon::now()->year;
+        $currentMonth = Carbon::now()->month;
+        $count = Log::where('type', 'loginapp')
+        ->whereYear('created_at', $currentYear)
+        ->whereMonth('created_at', $currentMonth)
+        ->count();
+        $currentMonth = date('F');
+        $thaiMonth = $months[$currentMonth];
+
+        if($count){
+            $data = [
+                "views" => $count,
+                "month" => $thaiMonth,
+                "graph" => [
+                    [
+                        "month" => 'ก.ค.57',
+                        "views" => '25'
+                    ],
+                    [
+                        "month" => 'ส.ค.57',
+                        "views" => '42'
+                    ],
+                    [
+                        "month" => 'ก.ย.57',
+                        "views" => '75'
+                    ],
+                    [
+                        "month" => 'ต.ค.57',
+                        "views" => '54'
+                    ],
+                    [
+                        "month" => 'พ.ย.57',
+                        "views" => '68'
+                    ],
+                    [
+                        "month" => 'ธ.ค.57',
+                        "views" => '11'
+                    ],
+                ]
+            ];
+        }else{
+            $data = [
+                "views" => 0,
+                "graph" =>  [
+                    [
+                        "month" => 'ก.ค.57',
+                        "views" => '25'
+                    ],
+                    [
+                        "month" => 'ส.ค.57',
+                        "views" => '42'
+                    ],
+                    [
+                        "month" => 'ก.ย.57',
+                        "views" => '75'
+                    ],
+                    [
+                        "month" => 'ต.ค.57',
+                        "views" => '54'
+                    ],
+                    [
+                        "month" => 'พ.ย.57',
+                        "views" => '68'
+                    ],
+                    [
+                        "month" => 'ธ.ค.57',
+                        "views" => '11'
+                    ],
+                ]
+            ];
+        }
+       
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
+    }
 }
