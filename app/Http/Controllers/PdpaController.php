@@ -141,6 +141,7 @@ class PdpaController extends Controller
                 $No = $No + 1;
                 $d[$i]->No = $No;
                 $d[$i]->frmamer = Frammers::where('qouta_id',$d[$i]->quota_id)->first();
+                $d[$i]->views = PdpaRegister::where('pdpa_id',$d[$i]->id)->count();
             }
         }
 
