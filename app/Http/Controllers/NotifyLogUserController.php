@@ -113,15 +113,29 @@ class NotifyLogUserController extends Controller
         } else  if (!isset($request->body)) {
             return $this->returnErrorData('[body] Data Not Found', 404);
         }
+        DB::beginTransaction();
 
-        foreach ($request->date as $key => $value) {
-            foreach ($value['time'] as $key1 => $value1) {
-                $Item = new AutoNotify();
-                $Item->date = $value['day'];
-                $Item->time = $value1['hour'];
-                $Item->title = $request->title;
-                $Item->message = $request->body;
+        try {
+
+            foreach ($request->date as $key => $value) {
+                foreach ($value['time'] as $key1 => $value1) {
+                    $Item = new AutoNotify();
+                    $Item->date = $value['day'];
+                    $Item->time = $value1['hour'];
+                    $Item->title = $request->title;
+                    $Item->message = $request->body;
+                    $Item->save();
+                }
             }
+
+            DB::commit();
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
         }
 
         //send notification user
