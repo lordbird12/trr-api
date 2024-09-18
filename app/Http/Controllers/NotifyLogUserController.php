@@ -148,4 +148,11 @@ class NotifyLogUserController extends Controller
         $type = 'all';
         $this->sendNotifyAll($title, $body, $target_id, $type);
     }
+
+    public function getDate($title)
+    {
+        $Item = AutoNotify::where('title',$title)->get();
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+    }
 }

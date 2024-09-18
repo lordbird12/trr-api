@@ -223,9 +223,6 @@ class PdpaController extends Controller
     public function show($id)
     {
         $Item = Pdpa::find($id);
-        if($Item){
-            $Item->date = AutoNotify::where('title',$Item->title)->get();
-        }
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }

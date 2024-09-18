@@ -251,6 +251,7 @@ Route::get('/get_pdpa/{id}', [PdpaController::class, 'getList']);
 Route::post('/pdpa_register_page', [PdpaController::class, 'getPageRegister']);
 
 Route::post('/register_pdpa', [PdpaController::class, 'registerPDPA']);
+Route::get('/get_date/{title}', [NotifyLogUserController::class, 'getDate']);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
