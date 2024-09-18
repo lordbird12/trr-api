@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Notify_log;
 use App\Models\Notify_log_user;
+use App\Models\AutoNotify;
 use Illuminate\Http\Request;
 
 class NotifyLogUserController extends Controller
@@ -111,6 +112,16 @@ class NotifyLogUserController extends Controller
             return $this->returnErrorData('[title] Data Not Found', 404);
         } else  if (!isset($request->body)) {
             return $this->returnErrorData('[body] Data Not Found', 404);
+        }
+
+        foreach ($request->date as $key => $value) {
+            foreach ($value['time'] as $key1 => $value1) {
+                $Item = new AutoNotify();
+                $Item->date = $value['day'];
+                $Item->time = $value1['hour'];
+                $Item->title = $request->title;
+                $Item->message = $request->body;
+            }
         }
 
         //send notification user
