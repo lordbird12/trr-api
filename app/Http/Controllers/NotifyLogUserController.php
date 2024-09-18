@@ -151,7 +151,18 @@ class NotifyLogUserController extends Controller
 
     public function getDate($title)
     {
-        $Item = AutoNotify::where('title',$title)->get();
+        $Item = AutoNotify::select('date','title', DB::raw('count(*) as total')) // Adjust as needed
+        ->where('title', $title)
+        ->groupBy('date', 'title') // Include 'title' in the GROUP BY clause
+        ->get();
+
+        if($Item){
+            foreach ($Item as $key => $value) {
+                $Item[$key]->days = AutoNotify::where('title',$value['title'])
+                ->where('date',$value['date'])
+                ->get();
+            }
+        }
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
