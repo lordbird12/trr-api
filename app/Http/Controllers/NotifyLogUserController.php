@@ -6,6 +6,9 @@ use App\Models\Notify_log;
 use App\Models\Notify_log_user;
 use App\Models\AutoNotify;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class NotifyLogUserController extends Controller
 {
