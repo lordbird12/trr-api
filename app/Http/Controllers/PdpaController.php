@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pdpa;
 use App\Models\PdpaRegister;
+use App\Models\AutoNotify;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -221,22 +222,12 @@ class PdpaController extends Controller
      */
     public function show($id)
     {
-        DB::beginTransaction();
-
-        try {
-
-            $Item = Pdpa::find($id);
-            $Item->save();
-
-            DB::commit();
-
-            return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
-        } catch (\Throwable $e) {
-
-            DB::rollback();
-
-            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        $Item = Pdpa::find($id);
+        if($Item){
+            $Item->date = AutoNotify::where('title',$Item->title)->get();
         }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
 
     /**
