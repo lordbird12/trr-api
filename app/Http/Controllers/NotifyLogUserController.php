@@ -22,7 +22,7 @@ class NotifyLogUserController extends Controller
             return $this->returnError('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
         }
 
-        $Notify_log_user = Notify_log_user::with('notifyLog')
+        $Notify_log_user = Notify_log_user::with('notify_log')
             ->orderby('id', 'desc');
 
         if (isset($notify_log_id)) {
@@ -46,7 +46,7 @@ class NotifyLogUserController extends Controller
 
     public function readNotify($id)
     {
-        $Notify_log_user = Notify_log_user::with('notifyLog')->find($id);
+        $Notify_log_user = Notify_log_user::with('notify_log')->find($id);
         $Notify_log_user->read = true;
         $Notify_log_user->send = true;
         $Notify_log_user->save();
