@@ -48,7 +48,7 @@ class NotifyLogUserController extends Controller
     {
         $Notify_log_user = Notify_log_user::with('notify_log')->find($id);
         $Notify_log_user->read = true;
-        $Notify_log_user->send = true;
+        // $Notify_log_user->send = true;
         $Notify_log_user->save();
 
         return $this->returnSuccess('ดำเนินการสำเร็จ', $Notify_log_user);
