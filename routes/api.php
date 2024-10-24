@@ -216,6 +216,8 @@ Route::post('/notify_log_user_page', [NotifyLogUserController::class, 'Page']);
 Route::get('/get_notify_log_user', [NotifyLogUserController::class, 'get']);
 Route::get('/testNoti', [Controller::class, 'testNoti']);
 Route::post('/notify_alert', [NotifyLogUserController::class, 'notiAlert']);
+Route::get('/alert_notify', [NotifyLogUserController::class, 'alertNotify']);
+Route::get('/read_notify/{id}', [NotifyLogUserController::class, 'readNotify']);
 
 
 //chat

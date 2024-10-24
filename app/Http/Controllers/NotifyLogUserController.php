@@ -12,6 +12,49 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class NotifyLogUserController extends Controller
 {
+
+    public function alertNotify(Request $request)
+    {
+        $notify_log_id = $request->notify_log_id;
+        $loginBy = $request->login_by;
+
+        if (!isset($loginBy)) {
+            return $this->returnError('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
+        }
+
+        $Notify_log_user = Notify_log_user::with('notifyLog')
+            ->orderby('id', 'desc');
+
+        if (isset($notify_log_id)) {
+            $Notify_log_user->where('notify_log_id', $notify_log_id);
+        }
+
+        $Notify_log_user->where('user_id', $loginBy->id);
+        $Notify_log_user->where('read', false);
+
+        $Notify_log_user = $Notify_log_user->get()->toarray();
+
+        if (!empty($Notify_log_user)) {
+
+            for ($i = 0; $i < count($Notify_log_user); $i++) {
+                $Notify_log_user[$i]['No'] = $i + 1;
+            }
+        }
+
+        return $this->returnSuccess('ดำเนินการสำเร็จ', $Notify_log_user);
+    }
+
+    public function readNotify($id)
+    {
+        $Notify_log_user = Notify_log_user::with('notifyLog')->find($id);
+        $Notify_log_user->read = true;
+        $Notify_log_user->send = true;
+        $Notify_log_user->save();
+
+        return $this->returnSuccess('ดำเนินการสำเร็จ', $Notify_log_user);
+    }
+
+
     public function get(Request $request)
     {
 
@@ -151,16 +194,16 @@ class NotifyLogUserController extends Controller
 
     public function getDate($title)
     {
-        $Item = AutoNotify::select('date','title', DB::raw('count(*) as total')) // Adjust as needed
-        ->where('title', $title)
-        ->groupBy('date', 'title') // Include 'title' in the GROUP BY clause
-        ->get();
+        $Item = AutoNotify::select('date', 'title', DB::raw('count(*) as total')) // Adjust as needed
+            ->where('title', $title)
+            ->groupBy('date', 'title') // Include 'title' in the GROUP BY clause
+            ->get();
 
-        if($Item){
+        if ($Item) {
             foreach ($Item as $key => $value) {
-                $Item[$key]->days = AutoNotify::where('title',$value['title'])
-                ->where('date',$value['date'])
-                ->get();
+                $Item[$key]->days = AutoNotify::where('title', $value['title'])
+                    ->where('date', $value['date'])
+                    ->get();
             }
         }
 
