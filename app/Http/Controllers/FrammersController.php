@@ -126,6 +126,7 @@ class FrammersController extends Controller
         try {
             $Item = new Frammers();
             $Item->qouta = $request->qouta;
+            $Item->qouta_id = $request->qouta;
             $Item->idcard = $request->idcard;
             $Item->name = $request->name;
             $Item->phone = $request->phone;
@@ -295,7 +296,7 @@ class FrammersController extends Controller
         $data = [];
         if (is_array($quotas) && !empty($quotas)) {
             // Filter the Frammers by year and quotas
-           
+
 
             foreach ($quotas as $key => $value) {
                 $months = [
@@ -312,7 +313,7 @@ class FrammersController extends Controller
                     "nov" => false,
                     "dec" => false,
                 ];
-            
+
                 // // Set the month corresponding to the quota value to true
 
                 // $frammer = Frammers::where('qouta_id', $value) // Replace 'quota_column_name' with the actual column name
@@ -358,7 +359,7 @@ class FrammersController extends Controller
                             $m = "0".$n;
                         }
                         $date = $year.'-'.$m;
-                     
+
                         $item = FactoryActivity::where('frammer_id', $value)
                         ->where('selectdate', 'like', $date . '%')
                         ->first();
@@ -366,15 +367,15 @@ class FrammersController extends Controller
                             $months[$numberToShortMonthMapping[$n]] = true;
                         }
                     }
-                  
+
                 // }
-            
+
                 // Create the array to be pushed to $data
                 $arr = [
                     "quota_id" => $value,
                     "months" => $months
                 ];
-            
+
                 // Push the $arr to $data
                 array_push($data, $arr);
             }
