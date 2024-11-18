@@ -237,17 +237,17 @@ class FrammerAreaController extends Controller
     public function getPlotList(Request $request)
     {
 
-        $FacID = $request->FacID;
-        $QuotaID = $request->QuotaID;
-        $Current_year = $request->Current_year;
+        $FacID = $request->fac_i_d;
+        $QuotaID = $request->quota_i_d;
+        $Current_year = $request->current_year;
 
         try {
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
             ])->post('https://canegrow.com:28099/api/cumulative_rain', [
-                'FacID' => $FacID,
-                'QuotaID' =>  $QuotaID,
-                'Current_year' => $Current_year,
+                'FacID' => strval($FacID),
+                'QuotaID' =>  strval($QuotaID),
+                'Current_year' => strval($Current_year),
                 // 'FacID' => "1",
                 // 'QuotaID' => "327",
                 // 'Current_year' => "2024",
@@ -256,14 +256,16 @@ class FrammerAreaController extends Controller
 
             if ($response->successful()) {
                 $res = $response->body();
-
                 $data = json_decode($res); //
+                // return $data->result;
 
-                for ($i = 0; $i < count($data->data); $i++) {
+                if ($data->result == 1 || $data->result == '1') {
 
-                    $FrammerArea = FrammerArea::where('area', $data->data[$i]->plot_no)->first();
+                    for ($i = 0; $i < count($data->data); $i++) {
 
-                    $data->data[$i]->frammer_area = $FrammerArea;
+                        $FrammerArea = FrammerArea::where('area', $data->data[$i]->plot_no)->first();
+                        $data->data[$i]->frammer_area = $FrammerArea;
+                    }
                 }
 
                 return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
