@@ -245,9 +245,12 @@ class FrammerAreaController extends Controller
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
             ])->post('https://canegrow.com:28099/api/cumulative_rain', [
-                'FacID' => "1",
-                'QuotaID' => "327",
-                'Current_year' => "2024",
+                'FacID' => $FacID,
+                'QuotaID' =>  $QuotaID,
+                'Current_year' => $Current_year,
+                // 'FacID' => "1",
+                // 'QuotaID' => "327",
+                // 'Current_year' => "2024",
             ]);
 
 
@@ -285,16 +288,15 @@ class FrammerAreaController extends Controller
             $area =  $request->area;
 
             $Item = FrammerArea::where('area', $area)->first();
-            if( $Item){
+            if ($Item) {
                 $Item->image = $request->image;
                 $Item->save();
-            }else{
+            } else {
                 $addItem = new FrammerArea();
                 $addItem->frammer_id = $frammer_id;
                 $addItem->area = $area;
                 $addItem->image = $request->image;
                 $addItem->save();
-
             }
 
             //
