@@ -252,10 +252,7 @@ class FrammerAreaMixEventTypeController extends Controller
 
         $currentYear = Carbon::now()->year;
         $currentMonth = Carbon::now()->month;
-        $count = Log::where('type', 'loginapp')
-        ->whereYear('created_at', $currentYear)
-        ->whereMonth('created_at', $currentMonth)
-        ->count();
+        $count = Feature::sum('views');
         $currentMonth = date('F');
         $thaiMonth = $months[$currentMonth];
 
@@ -277,6 +274,104 @@ class FrammerAreaMixEventTypeController extends Controller
     }
 
     public function graphRegister()
+    {
+        setlocale(LC_TIME, 'th_TH.UTF-8');
+    
+        // Mapping เดือนภาษาอังกฤษเป็นเดือนภาษาไทยแบบย่อ
+        $months = [
+            'January' => 'มกราคม',
+            'February' => 'กุมภาพันธ์',
+            'March' => 'มีนาคม',
+            'April' => 'เมษายน',
+            'May' => 'พฤษภาคม',
+            'June' => 'มิถุนายน',
+            'July' => 'กรกฎาคม',
+            'August' => 'สิงหาคม',
+            'September' => 'กันยายน',
+            'October' => 'ตุลาคม',
+            'November' => 'พฤศจิกายน',
+            'December' => 'ธันวาคม',
+        ];
+        
+        $shortMonths = [
+            'January' => 'ม.ค.',
+            'February' => 'ก.พ.',
+            'March' => 'มี.ค.',
+            'April' => 'เม.ย.',
+            'May' => 'พ.ค.',
+            'June' => 'มิ.ย.',
+            'July' => 'ก.ค.',
+            'August' => 'ส.ค.',
+            'September' => 'ก.ย.',
+            'October' => 'ต.ค.',
+            'November' => 'พ.ย.',
+            'December' => 'ธ.ค.',
+        ];
+    
+        // ดึงข้อมูล Feature
+        $Item = Feature::get()->toarray();
+    
+        if (!empty($Item)) {
+            for ($i = 0; $i < count($Item); $i++) {
+                $Item[$i]['No'] = $i + 1;
+                $Item[$i]['percent'] = 0;
+            }
+        }
+    
+        // คำนวณยอดในเดือนปัจจุบัน
+        $currentYear = Carbon::now()->year;
+        $currentMonth = Carbon::now()->month;
+        $count = Log::where('type', 'loginapp')
+            ->whereYear('created_at', $currentYear)
+            ->whereMonth('created_at', $currentMonth)
+            ->count();
+    
+        // แปลงชื่อเดือนภาษาอังกฤษเป็นภาษาไทยแบบย่อ
+        $currentMonthName = Carbon::now()->format('F');
+        $thaiMonth = $months[$currentMonthName];
+    
+        // สร้างข้อมูล graph ย้อนหลัง 6 เดือน
+        $graphData = [];
+        for ($i = 5; $i >= 0; $i--) {
+
+            $date = Carbon::now()->subMonths($i); // เดือนย้อนหลัง
+            $year = $date->year;
+            $month = $date->month;
+
+            // ดึงยอดวิวจากฐานข้อมูล
+            $views = Log::where('type', 'loginapp')
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+            ->count();
+
+            $date = Carbon::now()->subMonths($i); // เดือนย้อนหลัง
+            $thaiMonthShort = $shortMonths[$date->format('F')];
+            $yearShort = ($date->year + 543) % 100; // คำนวณปี พ.ศ. แบบย่อ
+            $graphData[] = [
+                "month" => "{$thaiMonthShort}{$yearShort}",
+                "views" => $views."" // ใส่จำนวนตัวเลขตัวอย่างแทน (แก้ให้ใช้ข้อมูลจริงได้)
+            ];
+        }
+    
+        // จัดการข้อมูล response
+        if ($count) {
+            $data = [
+                "views" => $count,
+                "month" => $thaiMonth,
+                "graph" => $graphData
+            ];
+        } else {
+            $data = [
+                "views" => 0,
+                "graph" => $graphData
+            ];
+        }
+    
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
+    }
+    
+
+    public function graphRegisterOld()
     {
         setlocale(LC_TIME, 'th_TH.UTF-8');
 
@@ -380,7 +475,6 @@ class FrammerAreaMixEventTypeController extends Controller
             ];
         }
        
-
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
     }
 }

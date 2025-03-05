@@ -2,30 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Feature;
-use App\Models\FeatureContractor;
-use Haruncpi\LaravelIdGenerator\IdGenerator;
+use App\Models\ConfigYear;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
-class FeatureController extends Controller
+class ConfigYearController extends Controller
 {
-    public function getList()
-    {
-        $Item = Feature::get()->toarray();
-
-        if (!empty($Item)) {
-
-            for ($i = 0; $i < count($Item); $i++) {
-                $Item[$i]['No'] = $i + 1;
-                $Item[$i]['image']  = url($Item[$i]['image']);
-            }
-        }
-
-        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
-    }
 
     public function getPage(Request $request)
     {
@@ -36,17 +20,11 @@ class FeatureController extends Controller
         $start = $request->start;
         $page = $start / $length + 1;
 
-        $Status = $request->status;
+        $col = array('id', 'year', 'date', 'time', 'create_by', 'update_by', 'created_at', 'updated_at');
 
-        $col = array('id', 'code', 'name', 'image', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
+        $orderby = array('', 'year', 'date', 'time', 'create_by');
 
-        $orderby = array('', 'code', 'name', 'image', 'status', 'create_by');
-
-        $D = Feature::select($col);
-
-        if (isset($Status)) {
-            $D->where('status', $Status);
-        }
+        $D = ConfigYear::select($col);
 
         if ($orderby[$order[0]['column']]) {
             $D->orderby($orderby[$order[0]['column']], $order[0]['dir']);
@@ -79,8 +57,6 @@ class FeatureController extends Controller
 
                 $No = $No + 1;
                 $d[$i]->No = $No;
-                $d[$i]->image = url($d[$i]->image);
-                $d[$i]->feature_contractors = FeatureContractor::where('feature_id',$d[$i]->id)->get();
             }
         }
 
@@ -116,29 +92,26 @@ class FeatureController extends Controller
     {
         $loginBy = $request->login_by;
 
-        if (!isset($request->name)) {
+        if (!isset($request->year)) {
             return $this->returnErrorData('กรุณาระบุชื่อให้เรียบร้อย', 404);
         } else
 
             DB::beginTransaction();
 
         try {
-            $Item = new Feature();
-            $prefix = "#FET-";
-            $id = IdGenerator::generate(['table' => 'features', 'field' => 'code', 'length' => 9, 'prefix' => $prefix]);
-            $Item->code = $id;
-            $Item->name = $request->name;
 
-            if ($request->image && $request->image != null && $request->image != 'null') {
-                $Item->image = $this->uploadImage($request->image, '/images/feature/');
-            }
+            $Item = new ConfigYear();
+           
+            $Item->year = $request->year;
+            $Item->date = $request->date;
+            $Item->time = $request->time;
 
             $Item->save();
             //
 
             //log
             $userId = "admin";
-            $type = 'เพิ่มรายการ';
+            $type = 'เพิ่มรายการ ConfigYear';
             $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $request->name;
             $this->Log($userId, $description, $type);
             //
@@ -157,28 +130,24 @@ class FeatureController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Feature  $feature
+     * @param  \App\Models\ConfigYear  $configYear
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        $Item = Feature::find($id);
-
-        if($Item){
-            $Item->views = $Item->views+1;
-            $Item->save();
-        }
+        $Item = ConfigYear::find($id);
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
+     
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Feature  $feature
+     * @param  \App\Models\ConfigYear  $configYear
      * @return \Illuminate\Http\Response
      */
-    public function edit(Feature $feature)
+    public function edit(ConfigYear $configYear)
     {
         //
     }
@@ -187,39 +156,44 @@ class FeatureController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Feature  $feature
+     * @param  \App\Models\ConfigYear  $configYear
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Feature $feature)
+    public function update(Request $request, $id)
     {
-        //
-    }
+        if (!isset($request->year)) {
+            return $this->returnError('กรุณาระบุชื่อให้เรียบร้อย', 404);
+        } else if (!isset($request->date)) {
+            return $this->returnError('กรุณาระบุรายละเอียดให้เรียบร้อย', 404);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Feature  $feature
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        DB::beginTransaction();
+        if (!isset($id)) {
+            return $this->returnErrorData('กรุณาระบุข้อมูลให้เรียบร้อย', 404);
+        } else
+
+            DB::beginTransaction();
 
         try {
 
-            $Item = Feature::find($id);
-            $Item->delete();
+            $Item = ConfigYear::find($id);
+            $Item->year = $request->year;
+            $Item->date = $request->date;
+            $Item->time = $request->time;
+            $Item->updated_at = Carbon::now()->toDateTimeString();
+
+            $Item->save();
+            //
 
             //log
             $userId = "admin";
-            $type = 'ลบผู้ใช้งาน';
-            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $type = 'แก้ไขรายการ ConfigYear';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $request->name;
             $this->Log($userId, $description, $type);
             //
 
             DB::commit();
 
-            return $this->returnUpdate('ดำเนินการสำเร็จ');
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
         } catch (\Throwable $e) {
 
             DB::rollback();
@@ -228,32 +202,31 @@ class FeatureController extends Controller
         }
     }
 
-    public function updateData(Request $request)
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\ConfigYear  $configYear
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
     {
-        if (!isset($request->id)) {
-            return $this->returnErrorData('[id] Data Not Found', 404);
-        }
-
         DB::beginTransaction();
 
         try {
-            $Item = Feature::find($request->id);
 
-            if (!$Item) {
-                return $this->returnErrorData('ไม่พบรายการ', 404);
-            }
+            $Item = ConfigYear::find($id);
+            $Item->delete();
 
-            $Item->name = $request->name;
-
-            if ($request->image && $request->image != null && $request->image != 'null') {
-                $Item->image = $this->uploadImage($request->image, '/images/feature/');
-            }
-
-            $Item->save();
+            //log
+            $userId = "admin";
+            $type = 'ลบ ConfigYear';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $this->Log($userId, $description, $type);
+            //
 
             DB::commit();
 
-            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+            return $this->returnUpdate('ดำเนินการสำเร็จ');
         } catch (\Throwable $e) {
 
             DB::rollback();

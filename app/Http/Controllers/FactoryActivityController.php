@@ -651,6 +651,7 @@ class FactoryActivityController extends Controller
                 $Item->sugartype = $request->sugartype;
                 $Item->plotsugar_id = $value;
                 $Item->selectdate = $request->selectdate;
+                $Item->year = $request->year;
 
 
                 $Item->image = $request->image;
@@ -788,6 +789,8 @@ class FactoryActivityController extends Controller
                     $deduct = new DeductPaid();
                     $deduct->frammer_id = $request->frammer_id;
                     $deduct->factory_activity_id  = $Item->id;
+                    $deduct->year_activity  = $request->year;
+
                     switch ($key) {
                         case 'fuelcost':
                             $deduct->deduct_type_id = 1; // เงินหักค่าเชื้อเพลิง

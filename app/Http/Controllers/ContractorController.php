@@ -53,6 +53,7 @@ class ContractorController extends Controller
         if (isset($status)) {
             $D->where('status', $status);
         }
+        
 
         if ($orderby[$order[0]['column']]) {
             $D->orderby($orderby[$order[0]['column']], $order[0]['dir']);
@@ -113,7 +114,7 @@ class ContractorController extends Controller
         $search = $request->search;
         $start = $request->start;
         $page = $start / $length + 1;
-        $facetorie = $request->facetorie;
+        $factorie = $request->factorie;
         $status = $request->status;
         $feature_id = $request->feature_id;
 
@@ -127,6 +128,8 @@ class ContractorController extends Controller
             $D->where('status', $status);
         }
 
+        
+
         if (isset($feature_id)) {
             $this->FeatureViews($feature_id);
 
@@ -134,7 +137,27 @@ class ContractorController extends Controller
 
             $arr = [];
             foreach ($features as $key => $value) {
-                array_push($arr, $value['id']);
+                array_push($arr, $value['contractor_id']);
+            }
+            $D->whereIn('id', $arr);
+
+            $Item2 = Feature::find($feature_id);
+
+            if($Item2){
+                $Item2->views = $Item2->views+1;
+                $Item2->save();
+            }
+        }
+
+        
+        if (isset($factorie)) {
+            $this->FeatureViews($factorie);
+
+            $factories = FactoryContractor::where('factorie_id', $factorie)->get();
+
+            $arr = [];
+            foreach ($factories as $key => $value) {
+                array_push($arr, $value['contractor_id']);
             }
             $D->whereIn('id', $arr);
         }
@@ -242,14 +265,19 @@ class ContractorController extends Controller
             $Item->image = $request->image;
 
             $Item->save();
-
+            FactoryContractor::where('contractor_id',$Item->id)->delete();
             foreach ($factories as $key => $value) {
-                $ItemFac = new FactoryContractor();
-                $ItemFac->contractor_id = $Item->id;
-                $ItemFac->factorie_id = $value['factorie_id'];
-                $ItemFac->save();
-            }
+                
+             
 
+                    $ItemFac = new FactoryContractor();
+                    $ItemFac->contractor_id = $Item->id;
+                    $ItemFac->factorie_id = $value['factorie_id'];
+                    $ItemFac->save();
+
+
+            }
+            FeatureContractor::where('contractor_id',$Item->id)->delete();
             foreach ($features as $key => $value) {
                 $ItemFea = new FeatureContractor();
                 $ItemFea->contractor_id = $Item->id;
@@ -272,7 +300,7 @@ class ContractorController extends Controller
 
             DB::rollback();
 
-            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+            return $this->returnErrorData('กรุณาตรวจสอบข้อมูลให้ถูกต้อง เบอร์ซ้ำในระบบ', 404);
         }
     }
 
@@ -335,17 +363,19 @@ class ContractorController extends Controller
             $Item->phone = $request->phone;
             $Item->detail = $request->detail;
             $Item->status = $request->status;
-            $Item->image = $request->image;
+            if($request->image && $request->image !== ""){
+                $Item->image = $request->image;
+            }
 
             $Item->save();
-
+            FactoryContractor::where('contractor_id',$Item->id)->delete();
             foreach ($factories as $key => $value) {
                 $ItemFac = new FactoryContractor();
                 $ItemFac->contractor_id = $Item->id;
                 $ItemFac->factorie_id = $value['factorie_id'];
                 $ItemFac->save();
             }
-
+            FeatureContractor::where('contractor_id',$Item->id)->delete();
             foreach ($features as $key => $value) {
                 $ItemFea = new FeatureContractor();
                 $ItemFea->contractor_id = $Item->id;

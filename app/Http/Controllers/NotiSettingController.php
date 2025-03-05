@@ -89,9 +89,11 @@ class NotiSettingController extends Controller
      * @param  \App\Models\NotiSetting  $notiSetting
      * @return \Illuminate\Http\Response
      */
-    public function show(NotiSetting $notiSetting)
+    public function show($id)
     {
-        //
+        $Item = NotiSetting::where('qouta_id',$id)->first();
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
 
     /**
@@ -112,9 +114,68 @@ class NotiSettingController extends Controller
      * @param  \App\Models\NotiSetting  $notiSetting
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, NotiSetting $notiSetting)
+    public function update(Request $request, $id)
     {
-        //
+
+        if (!isset($id)) {
+            return $this->returnErrorData('กรุณาระบุข้อมูลให้เรียบร้อย', 404);
+        } else
+
+            DB::beginTransaction();
+
+
+        try {
+            $Item = NotiSetting::where('qouta_id',$id)->first();
+            if(!$Item){
+                $ItemNoti = new NotiSetting();
+                $ItemNoti->qouta_id = $id;
+                $ItemNoti->noti_1 = $request->noti_1;
+                $ItemNoti->noti_2 = $request->noti_2;
+                $ItemNoti->noti_3 = $request->noti_3;
+                $ItemNoti->noti_4 = $request->noti_4;
+                $ItemNoti->noti_5 = $request->noti_5;
+                $ItemNoti->noti_6 = $request->noti_6;
+                $ItemNoti->noti_7 = $request->noti_7;
+                $ItemNoti->noti_8 = $request->noti_8;
+                $ItemNoti->save();
+            }else{
+                if($request->noti_1)
+                $Item->noti_1 = $request->noti_1;
+                if($request->noti_2)
+                $Item->noti_2 = $request->noti_2;
+                if($request->noti_3)
+                $Item->noti_3 = $request->noti_3;
+                if($request->noti_4)
+                $Item->noti_4 = $request->noti_4;
+                if($request->noti_5)
+                $Item->noti_5 = $request->noti_5;
+                if($request->noti_6)
+                $Item->noti_6 = $request->noti_6;
+                if($request->noti_7)
+                $Item->noti_7 = $request->noti_7;
+                if($request->noti_8)
+                $Item->noti_8 = $request->noti_8;
+                $Item->save();
+            }
+        
+            //
+
+            //log
+            $userId = "admin";
+            $type = 'แก้ไขรายการ';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $request->user_id;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $Item);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
     }
 
     /**

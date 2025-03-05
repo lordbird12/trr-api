@@ -13,7 +13,7 @@ class NewsController extends Controller
 {
     public function getList()
     {
-        $Item = News::get()->toarray();
+        $Item = News::where('is_use','1')->get()->toarray();
 
         if (!empty($Item)) {
 
@@ -36,9 +36,9 @@ class NewsController extends Controller
 
         $Status = $request->status;
 
-        $col = array('id', 'code', 'image',  'views', 'title', 'detail', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
+        $col = array('id', 'code', 'image',  'views', 'title', 'detail','is_use', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
 
-        $orderby = array('', 'code', 'image',  'views', 'title', 'detail', 'status', 'create_by');
+        $orderby = array('', 'code', 'image',  'views', 'title', 'detail','is_use', 'status', 'create_by');
 
         $D = News::select($col);
 
@@ -126,7 +126,7 @@ class NewsController extends Controller
             $Item->code = $id;
             $Item->title = $request->title;
             $Item->detail = $request->detail;
-
+            $Item->is_use = $request->is_use;
             if ($request->image && $request->image != null && $request->image != 'null') {
                 $Item->image = $this->uploadImage($request->image, '/images/news/');
             }
@@ -134,12 +134,15 @@ class NewsController extends Controller
             $Item->save();
             //
 
-            //send notification user
-            $title = 'แจ้งข่าวสาร';
-            $body = $Item->title;
-            $target_id = $Item->id;
-            $type = 'news';
-            $this->sendNotifyAll($title, $body, $target_id, $type);
+            if($request->notify_status == 1){
+                //send notification user
+                //send notification user
+                $title = 'แจ้งข่าวสาร';
+                $body = $Item->title;
+                $target_id = $Item->id;
+                $type = 'news';
+                $this->sendNotifyAll($title, $body, $target_id, $type);
+              }
 
 
             //เคสกรณีส่งระบุคน ใช้คำสั่งนี้ $qoutaId ที่ได้จาก api  เป็น array id เช่น [477,327]
@@ -268,7 +271,7 @@ class NewsController extends Controller
 
             $Item->title = $request->title;
             $Item->detail = $request->detail;
-
+            $Item->is_use = $request->is_use;
             if ($request->image && $request->image != null && $request->image != 'null') {
                 $Item->image = $this->uploadImage($request->image, '/images/news/');
             }
@@ -276,12 +279,14 @@ class NewsController extends Controller
             $Item->save();
             //
 
-            // //log
-            // $userId = "admin";
-            // $type = 'เพิ่มรายการ';
-            // $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $request->name;
-            // $this->Log($userId, $description, $type);
-            //
+            if($request->notify_status == 1){
+                //send notification user
+                $title = 'แจ้งข่าวสาร';
+                $body = $Item->title;
+                $target_id = $Item->id;
+                $type = 'news';
+                $this->sendNotifyAll($title, $body, $target_id, $type);
+              }
 
             DB::commit();
 

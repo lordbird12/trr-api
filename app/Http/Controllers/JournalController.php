@@ -13,7 +13,7 @@ class JournalController extends Controller
 {
     public function getList()
     {
-        $Item = Journal::get()->toarray();
+        $Item  = Journal::where('is_use','1')->get()->toarray();
 
         if (!empty($Item)) {
 
@@ -36,9 +36,9 @@ class JournalController extends Controller
 
         $Status = $request->status;
 
-        $col = array('id', 'no', 'code', 'image', 'title', 'detail', 'file', 'views', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
+        $col = array('id', 'no', 'code', 'image', 'title','is_use', 'detail', 'file', 'views', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
 
-        $orderby = array('', 'no', 'code', 'image', 'title', 'detail', 'file', 'views', 'status', 'create_by');
+        $orderby = array('', 'no', 'code', 'image', 'title','is_use', 'detail', 'file', 'views', 'status', 'create_by');
 
         $D = Journal::select($col);
 
@@ -140,6 +140,15 @@ class JournalController extends Controller
             $Item->save();
             //
 
+            if($request->notify_status == 1){
+                //send notification user
+                $title = 'แจ้งวารสาร';
+                $body = $Item->title;
+                $target_id = $Item->id;
+                $type = 'journal';
+                $this->sendNotifyAll($title, $body, $target_id, $type);
+              }
+
             //log
             $userId = "admin";
             $type = 'เพิ่มรายการ';
@@ -154,7 +163,7 @@ class JournalController extends Controller
 
             DB::rollback();
 
-            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+            return $this->returnErrorData('ไม่สามารถบันทึกได้ กรุณาตรวจสอบความถูกต้องของไฟล์ข้อมูล', 404);
         }
     }
 
@@ -179,6 +188,7 @@ class JournalController extends Controller
             if ($Item) {
                 $Item->image = url($Item->image);
                 $Item->file = url($Item->file);
+                $Item->is_use = $Item->is_use == null ? 0:$Item->is_use;
             }
 
             DB::commit();
@@ -266,6 +276,7 @@ class JournalController extends Controller
             $Item->no = $request->no;
             $Item->title = $request->title;
             $Item->detail = $request->detail;
+            $Item->is_use = $request->is_use;
 
             if ($request->file && $request->file != null && $request->file != 'null') {
                 $Item->file = $this->uploadFile($request->file, '/files/asset/');
@@ -277,6 +288,15 @@ class JournalController extends Controller
 
             $Item->save();
             //
+
+            if($request->notify_status == 1){
+              //send notification user
+              $title = 'แจ้งวารสาร';
+              $body = $Item->title;
+              $target_id = $Item->id;
+              $type = 'journal';
+              $this->sendNotifyAll($title, $body, $target_id, $type);
+            }
 
             DB::commit();
 

@@ -6,6 +6,10 @@ use App\Models\Frammers;
 use App\Models\Country;
 use App\Models\Province;
 use App\Models\FactoryActivity;
+use App\Models\PdpaRegister;
+use App\Models\DeductPaid;
+use App\Models\Chat;
+use App\Models\ConditionRegister;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -209,8 +213,24 @@ class FrammersController extends Controller
 
         try {
 
-            $Item = Frammers::find($id);
-            $Item->delete();
+            $Item = Frammers::where('qouta_id', $id)->first();
+            if ($Item) {
+                $ItemP = PdpaRegister::where('quota_id',$id);
+                $ItemP->delete();
+    
+                $Item = FactoryActivity::where('frammer_id',$id);
+                $Item->delete();
+    
+                $Item = Chat::where('qouta_id',$id);
+                $Item->delete();
+
+                $Item = DeductPaid::where('frammer_id',$id);
+                $Item->delete();
+
+                $ItemP = ConditionRegister::where('quota_id',$id);
+                $ItemP->delete();
+            }
+
 
             //log
             $userId = "admin";
@@ -282,6 +302,7 @@ class FrammersController extends Controller
         $Item = Frammers::where('qouta_id',$id)->first();
 
         if($Item){
+            if($Item->image)
             $Item->image = url($Item->image);
         }
 
@@ -389,6 +410,84 @@ class FrammersController extends Controller
         // }
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $data);
+    }
+
+    public function getSummaryByEvent(Request $request)
+    {
+        $frammer_id = $request->frammer_id;
+      
+        $items = FactoryActivity::selectRaw('activitytype, COUNT(*) as total_amount')
+        ->groupBy('activitytype')
+        ->orderBy('total_amount', 'desc')
+        ->get();
+
+        foreach ($items as $key => $value) {
+            switch ($value['activitytype']) {
+                case '0':
+                    $items[$key]['active_type'] = 'ไถและเตรียมดิน';
+                    break;
+        
+                case '1':
+                    $items[$key]['active_type'] = 'ปลูกอ้อย';
+                    break;
+        
+                case '2':
+                    $items[$key]['active_type'] = 'ให้น้ำ';
+                    break;
+
+                case '3':
+                    $items[$key]['active_type'] = 'ใส่ปุ๋ย';
+                    break;
+                
+                case '4':
+                    $items[$key]['active_type'] = 'ฉีดพ่นสารกำจัดศัตรูพืช';
+                    break;
+
+                case '5':
+                    $items[$key]['active_type'] = 'กำจัดศัตรูพืช';
+                    break;
+
+                case '6':
+                    $items[$key]['active_type'] = 'ตัดอ้อย';
+                    break;
+
+                case '7':
+                    $items[$key]['active_type'] = 'ขนส่งอ้อย';
+                    break;
+                    
+                default:
+                    $items[$key]['active_type'] = 'Unknown Type';
+                    break;
+            }
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $items);
+    }
+
+
+    public function setPin(Request $request)
+    {
+        $pin = $request->pin;
+        $qouta_id = $request->qouta_id;
+
+        $Item = Frammers::where('qouta_id',$qouta_id)->first();
+
+        if($Item){
+           $Item->pin = $pin;
+           $Item->save();
+        }
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+    }
+
+
+    public function getPin($qouta_id)
+    {
+        $qouta_id = $qouta_id;
+
+        $Item = Frammers::where('qouta_id',$qouta_id)->first();
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
 
 }

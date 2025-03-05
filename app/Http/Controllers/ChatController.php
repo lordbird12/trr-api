@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Chat;
 use App\Models\Chat_msg;
+use App\Models\Frammers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +43,7 @@ class ChatController extends Controller
 
             for ($i = 0; $i < count($Chat); $i++) {
                 $Chat[$i]['No'] = $i + 1;
+                $Chat[$i]['noti'] = $i + 1;
             }
         }
 
@@ -56,74 +58,88 @@ class ChatController extends Controller
         $search = $request->search;
         $start = $request->start;
         $page = $start / $length + 1;
-
-
+    
         $qoutaId = $request->qouta_id;
-
         $type = $request->type;
-
         $status = $request->status;
-
+    
         $col = array('id', 'room_name', 'qouta_id', 'type', 'status', 'meeting', 'co_agent', 'created_at', 'updated_at');
-
         $orderby = array('', 'room_name', 'qouta_id', 'meeting', 'type', 'status', 'meeting', 'co_agent', 'created_at', 'updated_at');
-
+    
         $d = Chat::select($col)
             ->with('frammer')
             ->with('chat_msgs');
-
-
+    
+        // Apply filters based on the request parameters
         if (isset($qoutaId)) {
             $d->where('qouta_id', $qoutaId);
         }
-
+    
         if (isset($assetId)) {
             $d->where('asset_id', $assetId);
         }
-
+    
         if (isset($type)) {
             $d->where('type', $type);
         }
-
+    
         if (isset($status)) {
             $d->where('status', $status);
         }
-
+    
+        // Apply ordering
         if ($orderby[$order[0]['column']]) {
             $d->orderby($orderby[$order[0]['column']], $order[0]['dir']);
         }
+    
+        // Apply search filters
         if ($search['value'] != '' && $search['value'] != null) {
-
             $d->Where(function ($query) use ($search, $col) {
-
-                //search datatable
+                // Search in columns
                 $query->where(function ($query) use ($search, $col) {
                     foreach ($col as &$c) {
                         $query->orWhere($c, 'like', '%' . $search['value'] . '%');
                     }
                 });
-
-                //search with
+    
+                // Search with custom member filtering
                 $query = $this->withMember($query, $search);
             });
         }
-
+    
+        // Paginate the result
         $d = $d->paginate($length, ['*'], 'page', $page);
-
+    
         if ($d->isNotEmpty()) {
-
-            //run no
+            // Calculate No field and count unread messages
             $No = (($page - 1) * $length);
-
-            for ($i = 0; $i < count($d); $i++) {
-
+    
+            foreach ($d as $index => $chat) {
                 $No = $No + 1;
-                $d[$i]->No = $No;
+                $chat->No = $No;
+                if($chat->frammer){
+                    if(count($chat->chat_msgs) > 0){
+                        $chat->frammer->name = $chat->chat_msgs[count($chat->chat_msgs)-1]->name ? $chat->chat_msgs[count($chat->chat_msgs)-1]->name:"Guest";
+                    }else{
+                        $chat->frammer->name = "Guest";
+                    }
+
+                    if($chat->frammer->image){
+                        $chat->frammer->image = url($chat->frammer->image); 
+                    }
+                }
+                // Count unread messages (status == 0)
+                $chat->noti = $chat->chat_msgs->filter(function ($msg) {
+                    return $msg->status == 1;
+                })->count(); // Use filter() instead of array_filter
             }
         }
-
+    
+        // Return the response
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $d);
     }
+    
+
 
     /**
      * Show the form for creating a new resource.
@@ -166,7 +182,6 @@ class ChatController extends Controller
                 $Chat->qouta_id = $qoutaId;
                 $Chat->type = 'vip';
                 $Chat->updated_at = Carbon::now()->toDateTimeString();
-
                 $Chat->save();
                 $CHAT =  $Chat;
             }
@@ -188,7 +203,7 @@ class ChatController extends Controller
 
                 for ($i = 0; $i < count($Chat_msg); $i++) {
                     $Chat_msg[$i]['No'] = $i + 1;
-
+                    $Chat_msg[$i]['noti'] = $i + 1;
                     //positon comment
                     if ($qoutaId) {
                         if ($qoutaId  == $Chat_msg[$i]['qouta_id']) {
@@ -222,7 +237,7 @@ class ChatController extends Controller
 
             DB::rollback();
 
-            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ', 404);
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง '.$e, 404);
         }
     }
 
@@ -644,4 +659,124 @@ class ChatController extends Controller
     //         return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e->getMessage(), 404);
     //     }
     // }
+
+    public function update_chat_status($id)
+    {
+
+        if (!isset($id)) {
+            return $this->returnErrorData('กรุณาระบุข้อมูลให้เรียบร้อย', 404);
+        } else
+
+            DB::beginTransaction();
+
+
+        try {
+            $items = Chat_msg::where('chat_id',$id)->get();
+            foreach ($items as $item) {
+                $item->status = 0; // Set status to 0
+                $item->save(); // Save each item
+            }
+            //
+
+            DB::commit();
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', $items);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+
+    public function create_chat($id,$name)
+    {
+
+        $qoutaId = $id;
+        DB::beginTransaction();
+
+        try {
+
+            $CHAT = null;
+            //check duplicate Asset Chat
+            $checkChat = Chat::where('qouta_id', $qoutaId)
+                ->where('status', 'chat')
+                ->first();
+
+            $Item = Frammers::where('qouta_id', $qoutaId)->first();
+
+            if (!$Item) {
+                $Item = new Frammers();
+                $Item->qouta = $qoutaId;
+                $Item->qouta_id = $qoutaId;
+                $Item->name = $name ?? "Guest";
+
+                $Item->save();
+            }
+
+            if ($checkChat) {
+                $CHAT = $checkChat;
+            } else {
+
+                $Chat = new Chat();
+
+                $Chat->room_name = date('Ymdhis') . rand(0000, 9999) . $qoutaId;
+                $Chat->qouta_id = $qoutaId;
+                $Chat->type = 'vip';
+                $Chat->updated_at = Carbon::now()->toDateTimeString();
+                $Chat->save();
+                $CHAT =  $Chat;
+            }
+
+            //get msg
+            $ChatId = $CHAT->id;
+
+            //first chat
+            $Chat_msg = new Chat_msg();
+            $Chat_msg->chat_id = $ChatId;
+            $Chat_msg->qouta_id = $qoutaId;
+            $Chat_msg->user_id = 1;
+            $Chat_msg->status = 0;
+            $Chat_msg->name = $name ?? "Guest";
+            $Chat_msg->message = "";
+            $Chat_msg->type = 'text';
+            $Chat_msg->updated_at = Carbon::now()->toDateTimeString();
+
+            $Chat_msg->save();
+
+
+            $Chat_msg = Chat_msg::with('frammer')
+                ->with('user')
+                ->with('chat')
+                ->where('chat_id', $ChatId);
+
+            $Chat_msg = $Chat_msg->get()
+                ->toarray();
+
+            if (!empty($Chat_msg)) {
+
+                for ($i = 0; $i < count($Chat_msg); $i++) {
+                    $Chat_msg[$i]['No'] = $i + 1;
+                    $Chat_msg[$i]['noti'] = $i + 1;
+                    //positon comment
+                    if ($qoutaId  == $Chat_msg[$i]['qouta_id']) {
+                        $Chat_msg[$i]['positon_comment'] = 'Right';
+                    } else {
+                        $Chat_msg[$i]['positon_comment'] = 'Left';
+                    }
+                 
+                }
+            }
+
+            DB::commit();
+
+
+            return $this->returnSuccess('ดำเนินการสำเร็จ', ['chat_id' => $ChatId, 'msg' => $Chat_msg]);
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
 }

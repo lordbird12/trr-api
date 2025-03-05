@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pdpa;
-use App\Models\PdpaRegister;
+use App\Models\Condition;
+use App\Models\ConditionRegister;
 use App\Models\AutoNotify;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -12,14 +12,14 @@ use Illuminate\Support\Facades\DB;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use App\Models\Frammers;
 
-class PdpaController extends Controller
+class ConditionController extends Controller
 {
     public function getList($id)
     {
-        $Item = Pdpa::where('status','Y')->first();
+        $Item = Condition::where('status','Y')->first();
 
         if($Item){
-            $check = PdpaRegister::where('pdpa_id',$Item->id)
+            $check = ConditionRegister::where('condition_id',$Item->id)
             ->where('quota_id',$id)
             ->first();
         }
@@ -42,11 +42,11 @@ class PdpaController extends Controller
 
         $Status = $request->status;
 
-        $col = array('id', 'title', 'status','created_at');
+        $col = array('id', 'title', 'detail', 'status', 'create_by', 'update_by', 'created_at', 'updated_at');
 
         $orderby = array('', 'title', 'detail', 'status', 'expire', 'create_by');
 
-        $D = Pdpa::select($col);
+        $D = Condition::select($col);
 
         if (isset($Status)) {
             $D->where('status', $Status);
@@ -86,7 +86,7 @@ class PdpaController extends Controller
 
                 $No = $No + 1;
                 $d[$i]->No = $No;
-                $d[$i]->views = PdpaRegister::where('pdpa_id',$d[$i]->id)->count();
+                $d[$i]->views = ConditionRegister::where('condition_id',$d[$i]->id)->count();
             }
         }
 
@@ -102,16 +102,16 @@ class PdpaController extends Controller
         $start = $request->start;
         $page = $start / $length + 1;
 
-        $pdpa_id = $request->pdpa_id;
+        $condition_id = $request->condition_id;
 
-        $col = array('id', 'pdpa_id', 'quota_id', 'create_by', 'update_by', 'created_at', 'updated_at');
+        $col = array('id', 'condition_id', 'quota_id', 'create_by', 'update_by', 'created_at', 'updated_at');
 
-        $orderby = array('', 'pdpa_id', 'quota_id', 'create_by', 'update_by');
+        $orderby = array('', 'condition_id', 'quota_id', 'create_by', 'update_by');
 
-        $D = PdpaRegister::select($col);
+        $D = ConditionRegister::select($col);
 
-        if (isset($pdpa_id)) {
-            $D->where('pdpa_id', $pdpa_id);
+        if (isset($condition_id)) {
+            $D->where('condition_id', $condition_id);
         }
 
         if ($orderby[$order[0]['column']]) {
@@ -188,22 +188,20 @@ class PdpaController extends Controller
             DB::beginTransaction();
 
         try {
-            Pdpa::query()->update(['status' => 'N']);
-
-            $Item = new Pdpa();
+            $Item = new Condition();
             $prefix = "#P-";
-            $id = IdGenerator::generate(['table' => 'pdpas', 'field' => 'code', 'length' => 9, 'prefix' => $prefix]);
+            $id = IdGenerator::generate(['table' => 'conditions', 'field' => 'code', 'length' => 9, 'prefix' => $prefix]);
             $Item->code = $id;
             $Item->title = $request->title;
             $Item->detail = $request->detail;
-            $Item->status = "Y";
+            $Item->status = $request->status;
 
             $Item->save();
             //
 
             //log
             $userId = "admin";
-            $type = 'เพิ่มรายการ PDPA';
+            $type = 'เพิ่มรายการ Condition';
             $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $request->name;
             $this->Log($userId, $description, $type);
             //
@@ -222,12 +220,12 @@ class PdpaController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Pdpa  $pdpa
+     * @param  \App\Models\Condition  $pdpa
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        $Item = Pdpa::find($id);
+        $Item = Condition::find($id);
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
     }
@@ -235,10 +233,10 @@ class PdpaController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Pdpa  $pdpa
+     * @param  \App\Models\Condition  $pdpa
      * @return \Illuminate\Http\Response
      */
-    public function edit(Pdpa $pdpa)
+    public function edit(Condition $condition)
     {
         //
     }
@@ -247,7 +245,7 @@ class PdpaController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Pdpa  $pdpa
+     * @param  \App\Models\Condition  $pdpa
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -270,12 +268,12 @@ class PdpaController extends Controller
             DB::beginTransaction();
 
         try {
-            Pdpa::query()->update(['status' => 'N']);
+            Condition::query()->update(['status' => 'N']);
 
-            $Item = Pdpa::find($id);
+            $Item = Condition::find($id);
             $Item->title = $title;
             $Item->detail = $detail;
-            $Item->status = "Y";
+            $Item->status = $status;
             $Item->updated_at = Carbon::now()->toDateTimeString();
 
             $Item->save();
@@ -283,7 +281,7 @@ class PdpaController extends Controller
 
             //log
             $userId = "admin";
-            $type = 'แก้ไขรายการ PDPA';
+            $type = 'แก้ไขรายการ Condition';
             $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $request->name;
             $this->Log($userId, $description, $type);
             //
@@ -302,7 +300,7 @@ class PdpaController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Pdpa  $pdpa
+     * @param  \App\Models\Condition  $pdpa
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
@@ -311,12 +309,12 @@ class PdpaController extends Controller
 
         try {
 
-            $Item = Pdpa::find($id);
+            $Item = Condition::find($id);
             $Item->delete();
 
             //log
             $userId = "admin";
-            $type = 'ลบ PDPA';
+            $type = 'ลบ Condition';
             $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
             $this->Log($userId, $description, $type);
             //
@@ -333,10 +331,10 @@ class PdpaController extends Controller
     }
 
 
-    public function registerPDPA(Request $request)
+    public function registerCondition(Request $request)
     {
-        if (!isset($request->pdpa_id)) {
-            return $this->returnErrorData('[pdpa_id] Data Not Found', 404);
+        if (!isset($request->condition_id)) {
+            return $this->returnErrorData('[condition_id] Data Not Found', 404);
         } else  if (!isset($request->quota_id)) {
             return $this->returnErrorData('[quota_id] Data Not Found', 404);
         }
@@ -345,15 +343,15 @@ class PdpaController extends Controller
 
         try {
 
-            $Item = new PdpaRegister();
-            $Item->pdpa_id = $request->pdpa_id;
+            $Item = new ConditionRegister();
+            $Item->condition_id = $request->condition_id;
             $Item->quota_id = $request->quota_id;
 
             $Item->save();
 
             //log
             $userId = "admin";
-            $type = 'บันทึกสถานะ PDPA';
+            $type = 'บันทึกสถานะ Condition';
             $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
             $this->Log($userId, $description, $type);
             //

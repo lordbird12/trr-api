@@ -722,8 +722,8 @@ class Controller extends BaseController
                 //     'msisdn' => $tel
                 // ];
                 $body = [
-                    'key' => "1786953766334606",
-                    'secret' => "f474490133f124bbcd230f16d90b679d",
+                    'key' => "1785773499242737",
+                    'secret' => "ecefda7a2645a1e80c3561b53e1d1e0d",
                     'msisdn' => $tel
                 ];
 
@@ -776,8 +776,8 @@ class Controller extends BaseController
             if ($open == true) {
 
                 $body = [
-                    'key' => "1786953766334606",
-                    'secret' => "f474490133f124bbcd230f16d90b679d",
+                    'key' => "1785773499242737",
+                    'secret' => "ecefda7a2645a1e80c3561b53e1d1e0d",
                     'token' => $tokenOTP,
                     'pin' => $otpCode,
                 ];

@@ -210,11 +210,12 @@ class UserController extends Controller
     {
 
         $loginBy = $request->login_by;
+        $factories = $request->factories;
 
         if (!isset($request->id)) {
             return $this->returnErrorData('ไม่พบข้อมูล id', 404);
         }
-        if (!isset($request->permission_id)) {
+        if (!isset($request->type)) {
             return $this->returnErrorData('กรุณาระบุสิทธิ์การใช้งานให้เรียบร้อย', 404);
         } else if (!isset($request->name)) {
             return $this->returnErrorData('กรุณาระบุชื่อผู้ใช้งานให้เรียบร้อย', 404);
@@ -246,15 +247,25 @@ class UserController extends Controller
             $Item->name = $request->name;
             $Item->email = $request->email;
             $Item->phone = $request->phone;
+            $Item->type = $request->type;
 
-            $Item->status = $request->status;
-            $Item->update_by = $loginBy->username;
+            $Item->status = "Yes";
+            $Item->update_by = "admin";
             $Item->updated_at = Carbon::now()->toDateTimeString();
 
             $Item->save();
 
+            FactoryUser::where('user_id', $Item->id)->delete();
+
+            foreach ($factories as $key => $value) {
+                $ItemFac = new FactoryUser();
+                $ItemFac->user_id = $Item->id;
+                $ItemFac->factorie_id = $value['factorie_id'];
+                $ItemFac->save();
+            }
+
             //log
-            $userId = $loginBy->username;
+            $userId = "admin";
             $type = 'แก้ไขผู้ใช้งาน';
             $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type . ' ' . $Item->username;
             $this->Log($userId, $description, $type);
@@ -267,7 +278,7 @@ class UserController extends Controller
 
             DB::rollback();
 
-            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ', 404);
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง '.$e, 404);
         }
     }
 
@@ -324,9 +335,6 @@ class UserController extends Controller
     {
         $loginBy = $request->login_by;
 
-        if (!isset($loginBy)) {
-            return $this->returnErrorData('ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 404);
-        }
 
         DB::beginTransaction();
 
@@ -517,6 +525,44 @@ class UserController extends Controller
             }
         } else {
             return $this->returnErrorData('ไม่พบอีเมล์ในระบบ ', 404);
+        }
+    }
+
+    public function ResetPassword(Request $request)
+    {
+        if (!isset($request->password)) {
+            return $this->returnErrorData('กรุณาระบุรหัสผ่านให้เรียบร้อย', 404);
+        }
+
+        if (!isset($request->phone)) {
+            return $this->returnErrorData('ข้อมูลไม่ถูกต้องกรุณาลองใหม่ภายหลัง', 404);
+        }
+
+        if (strlen($request->password) < 6) {
+            return $this->returnErrorData('กรุณาระบุรหัสผ่านอย่างน้อย 6 หลัก', 404);
+        }
+
+
+        DB::beginTransaction();
+
+        try {
+
+            $Item = User::where('phone',$request->phone)->first();
+
+
+            $Item->password = md5($request->password);
+            $Item->updated_at = Carbon::now()->toDateTimeString();
+            $Item->save();
+
+            DB::commit();
+
+            return $this->returnUpdate('ดำเนินการสำเร็จ');
+            
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ', 404);
         }
     }
 }

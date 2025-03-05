@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Notify_log;
 use App\Models\Notify_log_user;
 use App\Models\AutoNotify;
+use App\Models\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -163,16 +164,21 @@ class NotifyLogUserController extends Controller
 
         try {
 
-            foreach ($request->date as $key => $value) {
-                foreach ($value['time'] as $key1 => $value1) {
-                    $Item = new AutoNotify();
-                    $Item->date = $value['day'];
-                    $Item->time = $value1['hour'];
-                    $Item->title = $request->title;
-                    $Item->message = $request->body;
-                    $Item->save();
+            foreach ($request->factories as $key0 => $value0) {
+                foreach ($request->date as $key => $value) {
+                    foreach ($value['time'] as $key1 => $value1) {
+                        $Item = new AutoNotify();
+                        $Item->factorie_id = $value0['factorie_id'];
+                        $Item->date = $value['day'];
+                        $Item->time = $value1['hour'];
+                        $Item->title = $request->title;
+                        $Item->message = $request->body;
+                        $Item->save();
+                    }
                 }
             }
+
+            
 
             DB::commit();
 
@@ -204,9 +210,76 @@ class NotifyLogUserController extends Controller
                 $Item[$key]->days = AutoNotify::where('title', $value['title'])
                     ->where('date', $value['date'])
                     ->get();
+                    foreach ($Item[$key]->days as $key2 => $value2) {
+                        $Item[$key]->days[$key2]->factorie = Factory::find($Item[$key]->days[$key2]->factorie_id);
+                    }
             }
         }
 
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $Item);
+    }
+
+    public function AutoNotify_del($id)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $Item = AutoNotify::find($id);
+            $Item->delete();
+
+            //log
+            $userId = "admin";
+            $type = 'ลบผู้ใช้งาน';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnUpdate('ดำเนินการสำเร็จ');
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
+    }
+
+    public function AutoNotify_del_date(Request $request)
+    {
+        $title = $request->title;
+        $date = $request->date;
+
+        if (!isset($title)) {
+            return $this->returnErrorData('[title] Data Not Found', 404);
+        } else  if (!isset($date)) {
+            return $this->returnErrorData('[date] Data Not Found', 404);
+        }
+
+        DB::beginTransaction(); 
+
+        try {
+
+            $Item = AutoNotify::where('date',$date)
+            ->where('title',$title)
+            ->delete();
+
+            //log
+            $userId = "admin";
+            $type = 'ลบผู้ใช้งาน';
+            $description = 'ผู้ใช้งาน ' . $userId . ' ได้ทำการ ' . $type;
+            $this->Log($userId, $description, $type);
+            //
+
+            DB::commit();
+
+            return $this->returnUpdate('ดำเนินการสำเร็จ');
+        } catch (\Throwable $e) {
+
+            DB::rollback();
+
+            return $this->returnErrorData('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง ' . $e, 404);
+        }
     }
 }

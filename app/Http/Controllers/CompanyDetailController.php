@@ -53,7 +53,7 @@ class CompanyDetailController extends Controller
             $Item->time_start = $request->time_start;
             $Item->date_start = $request->date_start;
             $Item->time_end = $request->time_end;
-            $Item->date_end = $request->date_end;
+            $Item->date_end = "";
             $Item->link1 = $request->link1;
             $Item->link2 = $request->link2;
             $Item->link3 = $request->link3;
@@ -140,7 +140,7 @@ class CompanyDetailController extends Controller
             $Item->time_start = $request->time_start;
             $Item->date_start = $request->date_start;
             $Item->time_end = $request->time_end;
-            $Item->date_end = $request->date_end;
+            $Item->date_end = "";
             $Item->link1 = $request->link1;
             $Item->link2 = $request->link2;
             $Item->link3 = $request->link3;

@@ -14,7 +14,8 @@ class DashboardController extends Controller
     public function groutpby_activitytype(Request $request)
     {
         $frammerId = $request->frammer_id;
-        $selectedDate = $request->selectdate;
+        $start_year = $request->start_year;
+        $end_year = $request->end_year;
     
         $query = DeductPaid::query();
     
@@ -22,9 +23,45 @@ class DashboardController extends Controller
             $query->where('frammer_id', $frammerId);
         }
     
-        if ($selectedDate) {
-            $query->whereDate('created_at', $selectedDate);
+        if (isset($start_year) && isset($end_year)) {
+            $query->whereBetween('created_at', [$start_year, $end_year]);
         }
+        
+
+        $result = $query->with('factory_activity')
+            ->get()
+            ->filter(function ($item) {
+                return $item->factory_activity !== null;
+            })
+            ->groupBy(function ($item) {
+                return $item->factory_activity ? $item->factory_activity->activitytype : 'Unknown';
+            })
+            ->map(function ($group, $activitytype) {
+                return [
+                    'activitytype' => $activitytype,
+                    'total_paid' => $group->sum('paid'),
+                ];
+            })
+            ->values();
+    
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $result);
+    }
+
+    public function groutpby_activitytypeYear(Request $request)
+    {
+        $frammerId = $request->frammer_id;
+        $year = $request->year;
+    
+        $query = DeductPaid::query();
+    
+        if ($frammerId) {
+            $query->where('frammer_id', $frammerId);
+        }
+    
+        if ($year) {
+            $query->where('year_activity', $year);
+        }
+        
 
         $result = $query->with('factory_activity')
             ->get()
@@ -98,7 +135,7 @@ class DashboardController extends Controller
         return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $allDates);
     }
 
-    public function incomededuct(Request $request)
+    public function incomededuct_old(Request $request)
     {
         $frammerId = $request->frammer_id;
         $selectedDate = $request->selectdate;
@@ -108,6 +145,10 @@ class DashboardController extends Controller
 
         if (isset($frammerId)) {
             $query1->where('frammer_id', $frammerId);
+        }
+
+        if ($selectedDate) {
+            $query1->where('year', $selectedDate);
         }
         
         $query1 = $query1->selectRaw('SUM(paid) as total_paid')->get();
@@ -123,6 +164,89 @@ class DashboardController extends Controller
             $query2->where('frammer_id', $frammerId);
         }
 
+        $query2 = $query2->selectRaw('SUM(paid) as total_paid')->get();
+
+        $allData["Income"] = $query2->map(function ($item) {
+            return $item->total_paid ?? 0;
+        });
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $allData);
+    }
+
+    public function incomededuct(Request $request)
+    {
+        $frammerId = $request->frammer_id;
+        $start_year = $request->start_year;
+        $end_year = $request->end_year;
+        $allData = [];
+
+        $query1 = DeductPaid::query();
+
+        if (isset($frammerId)) {
+            $query1->where('frammer_id', $frammerId);
+        }
+
+        if (isset($start_year) && isset($end_year)) {
+            $query1->whereBetween('created_at', [$start_year, $end_year]);
+        }
+        
+        $query1 = $query1->selectRaw('SUM(paid) as total_paid')->get();
+
+        $allData["Deduct"] = $query1->map(function ($item) {
+            return $item->total_paid ?? 0;
+        });
+
+        $query2 = IncomePaid::query();
+
+        if (isset($frammerId)) {
+            $query2->where('frammer_id', $frammerId);
+        }
+
+        if (isset($start_year) && isset($end_year)) {
+            $query2->whereBetween('created_at', [$start_year, $end_year]);
+        }
+        
+        $query2 = $query2->selectRaw('SUM(paid) as total_paid')->get();
+
+        $allData["Income"] = $query2->map(function ($item) {
+            return $item->total_paid ?? 0;
+        });
+
+        return $this->returnSuccess('เรียกดูข้อมูลสำเร็จ', $allData);
+    }
+
+    public function incomedeductYear(Request $request)
+    {
+        $frammerId = $request->frammer_id;
+        $year = $request->year;
+        $allData = [];
+
+        $query1 = DeductPaid::query();
+
+        if (isset($frammerId)) {
+            $query1->where('frammer_id', $frammerId);
+        }
+
+        if (isset($year)) {
+            $query1->where('year_activity', $year);
+        }
+        
+        $query1 = $query1->selectRaw('SUM(paid) as total_paid')->get();
+
+        $allData["Deduct"] = $query1->map(function ($item) {
+            return $item->total_paid ?? 0;
+        });
+
+        $query2 = IncomePaid::query();
+
+        if (isset($frammerId)) {
+            $query2->where('frammer_id', $frammerId);
+        }
+
+        if (isset($year)) {
+            $query2->where('year_activity', $year);
+        }
+        
         $query2 = $query2->selectRaw('SUM(paid) as total_paid')->get();
 
         $allData["Income"] = $query2->map(function ($item) {

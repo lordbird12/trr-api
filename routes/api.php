@@ -2,12 +2,16 @@
 
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatMsgController;
+use App\Http\Controllers\CompanyDetailController;
 use App\Http\Controllers\ContractorController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\CountryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeductPaidController;
 use App\Http\Controllers\DeductTypeController;
+use App\Http\Controllers\FactoryActivityController;
 use App\Http\Controllers\FactoryController;
+use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FeatureController;
 use App\Http\Controllers\FrammerAreaController;
 use App\Http\Controllers\FrammerAreaMixController;
@@ -19,18 +23,16 @@ use App\Http\Controllers\IncomeTypeController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\NotifyLogUserController;
+use App\Http\Controllers\NotiSettingController;
+use App\Http\Controllers\PdpaController;
+use App\Http\Controllers\ConditionController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RadioController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\FactoryActivityController;
 use App\Http\Controllers\RainController;
-use App\Http\Controllers\CompanyDetailController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\NotifyLogUserController;
 use App\Http\Controllers\RainImageController;
-use App\Http\Controllers\NotiSettingController;
-use App\Http\Controllers\FaqController;
-use App\Http\Controllers\PdpaController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ConfigYearController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -64,21 +66,20 @@ Route::resource('user', UserController::class);
 Route::post('/user_page', [UserController::class, 'getPage']);
 Route::get('/get_user', [UserController::class, 'getUser']);
 Route::get('/user_profile', [UserController::class, 'getProfileUser']);
-Route::post('/update_user', [UserController::class, 'update']);
+// Route::post('/update_user', [UserController::class, 'update']);
 // Route::post('/user_page', [UserController::class, 'UserPage']);
 Route::put('/reset_password_user/{id}', [UserController::class, 'ResetPasswordUser']);
 Route::post('/update_profile_user', [UserController::class, 'updateProfileUser']);
 Route::get('/get_profile_user', [UserController::class, 'getProfileUser']);
+Route::post('/change_password', [UserController::class, 'ResetPassword']);
 
 Route::put('/update_password_user/{id}', [UserController::class, 'updatePasswordUser']);
-
 
 // Fearture
 Route::resource('feature', FeatureController::class);
 Route::post('/feature_page', [FeatureController::class, 'getPage']);
 Route::get('/get_feature', [FeatureController::class, 'getList']);
 Route::post('/update_feature', [FeatureController::class, 'updateData']);
-
 
 // Fearture
 Route::resource('factorie', FactoryController::class);
@@ -118,6 +119,8 @@ Route::get('/get_frammer', [FrammersController::class, 'getList']);
 Route::post('/update_frammer', [FrammersController::class, 'updateData']);
 Route::post('/image_profile', [FrammersController::class, 'imageProfile']);
 Route::get('/get_image_profile/{id}', [FrammersController::class, 'GetProfile']);
+Route::post('/set_pin', [FrammersController::class, 'setPin']);
+Route::get('/get_pin/{id}', [FrammersController::class, 'getPin']);
 
 // News
 Route::resource('news', NewsController::class);
@@ -132,8 +135,6 @@ Route::post('/get_frammer_area', [FrammerAreaController::class, 'getList']);
 Route::post('/get_plot_list', [FrammerAreaController::class, 'getPlotList']);
 Route::post('/update_image_area', [FrammerAreaController::class, 'updateImageArea']);
 
-
-
 // Framer Area Mix
 Route::resource('frammer_area_mix', FrammerAreaMixController::class);
 Route::post('/frammer_area_mix_page', [FrammerAreaMixController::class, 'getPage']);
@@ -147,13 +148,12 @@ Route::post('/update_journal', [JournalController::class, 'updateData']);
 
 Route::post('/confirm_otp', [LoginController::class, 'requestOTP']);
 Route::post('/verify_otp', [LoginController::class, 'confirmOtp']);
-
+Route::post('/verify_otp_reset', [LoginController::class, 'confirmOtpReset']);
 
 // Framer Area Mix
 Route::resource('frammer_area_mix', FrammerAreaMixController::class);
 Route::post('/frammer_area_mix_page', [FrammerAreaMixController::class, 'getPage']);
 Route::get('/get_frammer_area_mix', [FrammerAreaMixController::class, 'getList']);
-
 
 // Radio
 Route::resource('radio', RadioController::class);
@@ -161,18 +161,15 @@ Route::post('/radio_page', [RadioController::class, 'getPage']);
 Route::get('/get_radio', [RadioController::class, 'getList']);
 Route::post('/update_radio', [RadioController::class, 'updateData']);
 
-
 // Income Type
 Route::resource('income_type', IncomeTypeController::class);
 Route::post('/income_type_page', [IncomeTypeController::class, 'getPage']);
 Route::get('/get_income_type', [IncomeTypeController::class, 'getList']);
 
-
 // Deduct Type
 Route::resource('deduct_type', DeductTypeController::class);
 Route::post('/deduct_type_page', [DeductTypeController::class, 'getPage']);
 Route::get('/get_deduct_type', [DeductTypeController::class, 'getList']);
-
 
 // Income Paid
 Route::resource('income_paid', IncomePaidController::class);
@@ -208,8 +205,10 @@ Route::post('/get_company_byfactory', [CompanyDetailController::class, 'getbyfac
 
 //dashboard
 Route::post('/get_byactivitytype', [DashboardController::class, 'groutpby_activitytype']);
+Route::post('/get_byactivitytypeYear', [DashboardController::class, 'groutpby_activitytypeYear']);
 Route::post('/get_byweekly', [DashboardController::class, 'groutpby_weekly']);
 Route::post('/get_incomededuct', [DashboardController::class, 'incomededuct']);
+Route::post('/get_incomedeductYear', [DashboardController::class, 'incomedeductYear']);
 
 //notify log user
 Route::post('/notify_log_user_page', [NotifyLogUserController::class, 'Page']);
@@ -218,12 +217,15 @@ Route::get('/testNoti', [Controller::class, 'testNoti']);
 Route::post('/notify_alert', [NotifyLogUserController::class, 'notiAlert']);
 Route::get('/alert_notify', [NotifyLogUserController::class, 'alertNotify']);
 Route::get('/read_notify/{id}', [NotifyLogUserController::class, 'readNotify']);
-
+Route::delete('/AutoNotify_del/{id}', [NotifyLogUserController::class, 'AutoNotify_del']);
+Route::post('/AutoNotify_del_date', [NotifyLogUserController::class, 'AutoNotify_del_date']);
 
 //chat
 Route::resource('chat', ChatController::class);
 Route::post('/get_chat', [ChatController::class, 'getChat']);
 Route::post('/chat_page', [ChatController::class, 'ChatPage']);
+Route::get('/update_chat_status/{id}', [ChatController::class, 'update_chat_status']);
+Route::get('/create_chat/{id}/{name}', [ChatController::class, 'create_chat']);
 
 //chat msg
 Route::resource('chat_msg', ChatMsgController::class);
@@ -235,13 +237,14 @@ Route::resource('noti_setting', NotiSettingController::class);
 Route::post('/noti_setting_page', [NotiSettingController::class, 'getPage']);
 Route::get('/get_noti_setting/{frammer_id}', [NotiSettingController::class, 'getList']);
 
-
 // Faq
 Route::resource('faq', FaqController::class);
 Route::post('/faq_page', [FaqController::class, 'getPage']);
 Route::get('/get_faq', [FaqController::class, 'getList']);
+Route::post('/update_faq', [FaqController::class, 'update_faq']);
 
 Route::post('/frammer_events', [FrammersController::class, 'getEventYear']);
+Route::post('/frammer_events_sum_by_event', [FrammersController::class, 'getSummaryByEvent']);
 
 Route::get('/get_graph_circle', [FrammerAreaMixEventTypeController::class, 'graphCircle']);
 Route::get('/get_graph_register', [FrammerAreaMixEventTypeController::class, 'graphRegister']);
@@ -251,10 +254,24 @@ Route::resource('pdpa', PdpaController::class);
 Route::post('/pdpa_page', [PdpaController::class, 'getPage']);
 Route::get('/get_pdpa/{id}', [PdpaController::class, 'getList']);
 Route::post('/pdpa_register_page', [PdpaController::class, 'getPageRegister']);
-
 Route::post('/register_pdpa', [PdpaController::class, 'registerPDPA']);
+
+
+Route::resource('condition', ConditionController::class);
+Route::post('/condition_page', [ConditionController::class, 'getPage']);
+Route::get('/get_condition/{id}', [ConditionController::class, 'getList']);
+Route::post('/condition_register_page', [ConditionController::class, 'getPageRegister']);
+Route::post('/register_condition', [ConditionController::class, 'registerCondition']);
+
+// Config Year
+Route::resource('configyear', ConfigYearController::class);
+Route::post('/configyear_page', [ConfigYearController::class, 'getPage']);
+
 Route::get('/get_date/{title}', [NotifyLogUserController::class, 'getDate']);
+Route::post('/forgot_password', [LoginController::class, 'sendPasswordReset']);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Route::group(['middleware' => 'checkjwt'], function () {});
+Route::group(['middleware' => 'checkjwt'], function () {
+    Route::post('/update_user', [UserController::class, 'update']);
+});

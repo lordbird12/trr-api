@@ -78,9 +78,9 @@ class ChatMsgController extends Controller
 
         $status = $request->status;
 
-        $col = array('id', 'chat_id', 'user_id', 'qouta_id', 'message', 'type', 'status', 'created_at', 'updated_at');
+        $col = array('id', 'chat_id', 'user_id', 'qouta_id', 'message', 'name','type', 'status', 'created_at', 'updated_at');
 
-        $orderby = array('', 'chat_id', 'user_id', 'qouta_id', 'message', 'type', 'status', 'created_at', 'updated_at');
+        $orderby = array('', 'chat_id', 'user_id', 'qouta_id', 'message','name', 'type', 'status', 'created_at', 'updated_at');
 
         $d = Chat_msg::select($col)
             ->with('user')
@@ -179,13 +179,22 @@ class ChatMsgController extends Controller
      */
     public function store(Request $request)
     {
-
         $userId = $request->user_id;
         $qoutaId = $request->qouta_id;
 
         if (!isset($request->chat_id)) {
             return $this->returnErrorData('กรุณาระบุ chat_id ให้เรียบร้อย', 404);
         }
+
+        
+        if (!isset($qoutaId)) {
+            $lastRecord = Chat_msg::whereNotNull('name')
+                       ->whereNotNull('qouta_id')
+                       ->where('chat_id',$request->chat_id)
+                       ->latest()
+                       ->first();
+        }
+
         DB::beginTransaction();
 
         try {
@@ -195,6 +204,7 @@ class ChatMsgController extends Controller
 
             if ($qoutaId) {
                 $Chat_msg->qouta_id = $qoutaId;
+                $Chat_msg->name = $request->name ?? $lastRecord->name;
 
                 //update read chat 0
                 $Chat = Chat::find($Chat_msg->chat_id);
@@ -203,6 +213,8 @@ class ChatMsgController extends Controller
                 //
             } else {
                 $Chat_msg->user_id = $userId;
+                $Chat_msg->name = $request->name ?? $lastRecord->name;
+                $Chat_msg->status = 0;
 
                 //update read chat 1
                 $Chat = Chat::find($Chat_msg->chat_id);
@@ -212,6 +224,7 @@ class ChatMsgController extends Controller
             }
 
             $Chat_msg->message = $request->message;
+            // $Chat_msg->name = $request->name;
 
             //เชค url
             if ($request->type == 'text') {
