@@ -264,6 +264,93 @@ class Controller extends BaseController
         return $Notify_log;
     }
 
+    public function sendNotifyFarmer(Request $request)
+    {
+
+        $key = md5('ashatechxtrr2025');
+
+        $token = $request->header('token');
+        if (!$token) {
+            return response()->json([
+                'code' => '401',
+                'status' => false,
+                'message' => 'Token Not Found',
+                'data' => [],
+            ], 401);
+        }
+
+
+        if ($token != $key) {
+            return response()->json([
+                'code' => '401',
+                'status' => false,
+                'message' => 'Can not verify identity',
+                'data' => [],
+            ], 401);
+        }
+
+
+        $type  = $request->type;
+        $title  = $request->title;
+        $body  = $request->body;
+
+        $qoutaId = $request->qouta_id;
+
+        $notiToken = [];
+        $notifyUser = [];
+
+        for ($j = 0; $j < count($qoutaId); $j++) {
+
+            if ($type == 'all') {
+                $device =  Device::with('user')
+                    ->with('frammer')
+                    ->get();
+            } else {
+                $device =  Device::with('user')
+                    ->with('frammer')
+                    ->where('qouta_id', $qoutaId[$j])
+                    ->get();
+            }
+
+            for ($i = 0; $i < count($device); $i++) {
+
+                $notiToken[] = $device[$i]->notify_token;
+                $notifyUser[] = $device[$i]->qouta_id;
+            }
+        }
+
+        $FcmToken = array_values(array_unique($notiToken));
+        $NotifyUser = array_values(array_unique($notifyUser));
+
+        for ($i = 0; $i < count($FcmToken); $i++) {
+            try {
+
+                $message = CloudMessage::fromArray([
+                    'token' => $FcmToken[$i],
+                    'notification' => [
+                        'title' => $title,
+                        'body' => $body
+                    ],
+                ]);
+
+                $this->notification->send($message);
+            } catch (\Throwable $e) {
+                //
+            }
+        }
+
+        // //add log
+        // $this->addNotifyLog($title, $body, $target_id, $type, $NotifyUser);
+
+        return response()->json([
+            'code' => '200',
+            'status' => true,
+            'message' => 'success',
+            'data' => $qoutaId,
+        ], 200);
+    }
+
+
     public function sendMail($email, $data, $title, $type)
     {
 

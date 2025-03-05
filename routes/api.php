@@ -60,6 +60,8 @@ Route::post('/forgot_password_user', [UserController::class, 'ForgotPasswordUser
 // //controller
 Route::post('/upload_images', [Controller::class, 'uploadImages']);
 Route::post('/upload_file', [Controller::class, 'uploadFiles']);
+Route::post('/send_notify_farmer', [Controller::class, 'sendNotifyFarmer']);
+
 
 //user
 Route::resource('user', UserController::class);
